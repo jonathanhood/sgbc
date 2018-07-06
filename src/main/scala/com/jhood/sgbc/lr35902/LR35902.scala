@@ -114,7 +114,7 @@ case class AddRegisters8WithCarry(left: Register8, right: Register8) extends Ins
 case class SubstractRegisters8WithCarry(left: Register8, right: Register8) extends Instruction {
   // left = left - right
   override def name: String = s"SBC ${left.name}, ${right.name}"
-  override def cycles: Int = 3
+  override def cycles: Int = 4
   override def width: Int = 1
 
   override def execute(registers: Registers, memory: MemoryController): Unit = {
@@ -122,6 +122,63 @@ case class SubstractRegisters8WithCarry(left: Register8, right: Register8) exten
     val result = registers.ALU.Oper8(left.get,withCarry, _ - _)
     registers.Flags.N.set(true)
     left.write(result)
+  }
+}
+
+case class AndRegisters8(left: Register8, right: Register8) extends Instruction {
+  override def name: String = s"AND ${left.name}, ${right.name}"
+  override def cycles: Int = 4
+  override def width: Int = 1
+
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    val result = (left.get & right.get).toByte
+    registers.Flags.Z(result == 0)
+    registers.Flags.N(false)
+    registers.Flags.H(true)
+    registers.Flags.C(false)
+    left.write(result)
+  }
+}
+
+case class XorRegisters8(left: Register8, right: Register8) extends Instruction {
+  override def name: String = s"XOR ${left.name}, ${right.name}"
+  override def cycles: Int = 4
+  override def width: Int = 1
+
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    val result = (left.get ^ right.get).toByte
+    registers.Flags.Z(result == 0)
+    registers.Flags.N(false)
+    registers.Flags.H(false)
+    registers.Flags.C(false)
+    left.write(result)
+  }
+}
+
+case class OrRegisters8(left: Register8, right: Register8) extends Instruction {
+  override def name: String = s"OR ${left.name}, ${right.name}"
+  override def cycles: Int = 4
+  override def width: Int = 1
+
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    val result = (left.get | right.get).toByte
+    registers.Flags.Z(result == 0)
+    registers.Flags.N(false)
+    registers.Flags.H(false)
+    registers.Flags.C(false)
+    left.write(result)
+  }
+}
+
+case class CompareRegisters8(left: Register8, right: Register8) extends Instruction {
+  override def name: String = s"CP ${left.name}, ${right.name}"
+  override def cycles: Int = 4
+  override def width: Int = 1
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    // Comparison on the lr35902 looks to be a subtraction where flags are
+    // set but the result is not retained
+    registers.ALU.Oper8(left.get,right.get,_ - _)
+    registers.Flags.N(true)
   }
 }
 
@@ -270,6 +327,42 @@ class LR35902(registers: Registers, memory: MemoryController) {
   instructions(0x9C) = SubstractRegisters8WithCarry(registers.A,registers.H)
   instructions(0x9D) = SubstractRegisters8WithCarry(registers.A,registers.L)
   instructions(0x9F) = SubstractRegisters8WithCarry(registers.A,registers.A)
+
+  // AND X
+  instructions(0xA0) = AndRegisters8(registers.A,registers.B)
+  instructions(0xA1) = AndRegisters8(registers.A,registers.C)
+  instructions(0xA3) = AndRegisters8(registers.A,registers.D)
+  instructions(0xA3) = AndRegisters8(registers.A,registers.E)
+  instructions(0xA4) = AndRegisters8(registers.A,registers.H)
+  instructions(0xA5) = AndRegisters8(registers.A,registers.L)
+  instructions(0xA7) = AndRegisters8(registers.A,registers.A)
+
+  // XOR X
+  instructions(0xA8) = XorRegisters8(registers.A,registers.B)
+  instructions(0xA9) = XorRegisters8(registers.A,registers.C)
+  instructions(0xAA) = XorRegisters8(registers.A,registers.D)
+  instructions(0xAB) = XorRegisters8(registers.A,registers.E)
+  instructions(0xAC) = XorRegisters8(registers.A,registers.H)
+  instructions(0xAD) = XorRegisters8(registers.A,registers.L)
+  instructions(0xAF) = XorRegisters8(registers.A,registers.A)
+
+  // OR X
+  instructions(0xB0) = OrRegisters8(registers.A,registers.B)
+  instructions(0xB1) = OrRegisters8(registers.A,registers.C)
+  instructions(0xB3) = OrRegisters8(registers.A,registers.D)
+  instructions(0xB3) = OrRegisters8(registers.A,registers.E)
+  instructions(0xB4) = OrRegisters8(registers.A,registers.H)
+  instructions(0xB5) = OrRegisters8(registers.A,registers.L)
+  instructions(0xB7) = OrRegisters8(registers.A,registers.A)
+
+  // CP X
+  instructions(0xB8) = CompareRegisters8(registers.A,registers.B)
+  instructions(0xB9) = CompareRegisters8(registers.A,registers.C)
+  instructions(0xBA) = CompareRegisters8(registers.A,registers.D)
+  instructions(0xBB) = CompareRegisters8(registers.A,registers.E)
+  instructions(0xBC) = CompareRegisters8(registers.A,registers.H)
+  instructions(0xBD) = CompareRegisters8(registers.A,registers.L)
+  instructions(0xBF) = CompareRegisters8(registers.A,registers.A)
 
   def tick: Unit = {
     val inst = instructions(memory.fetch(registers.PC.get))
