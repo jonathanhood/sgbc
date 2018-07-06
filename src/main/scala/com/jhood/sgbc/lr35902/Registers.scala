@@ -48,8 +48,12 @@ trait Flag {
 }
 
 class Registers {
-  // AF, BC, DE, HL all fit into a single 64-bit long
-  private var registers : Long = 0
+  // AF, BC, DE, HL all fit into a single 64-bit
+
+  // Setting to 0x0100 initially identifies this as an OG Gameboy
+  //    0x1100 would be GBC (which we aren't implementing)
+  //    0xFF00 is SGB (which we also aren't implementing)
+  private var registers : Long = 0x0100
 
   case class Register8Impl(name: String, offset: Byte) extends Register8 {
     def get: Byte = (registers >>> offset).toByte
