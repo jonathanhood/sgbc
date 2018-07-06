@@ -14,6 +14,7 @@ object CLI {
       override def fetchShort(address: Short): Short = ???
       override def write(address: Short, value: Byte): Unit = ???
       override def writeShort(address: Short, value: Short): Unit = ???
+      override def fetchNibbles(address: Short): Seq[Byte] = ???
     }
     val cpu = new LR35902(registers, memory)
 
