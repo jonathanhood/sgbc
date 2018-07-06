@@ -1,7 +1,7 @@
 name := "sgbc"
-
-version := "0.1"
-
+version := "alpha"
 scalaVersion := "2.12.6"
+mainClass := Some("com.jhood.sgbc.CLI")
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+libraryDependencies += "com.github.scopt" %% "scopt" % "3.7.0"
+

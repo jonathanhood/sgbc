@@ -1,22 +1,43 @@
 package com.jhood.sgbc.lr35902
 
+import com.jhood.sgbc.memory.MemoryController
 
-trait Register8 {
+trait Operand8 {
   def name: String
   def get: Byte
   def write(value: Byte): Unit
+}
+
+trait Register8 extends Operand8 {
   def increment(value: Int): Unit = {
     write((get + value).toByte)
   }
 }
 
-trait Register16 {
+case class Memory8(addrSource: Register16, memory: MemoryController, offset: Int = 0) extends Operand8 {
+  private def addr = (addrSource.get + offset).toShort
+  override def name: String = s"(${addrSource.name})"
+  override def get: Byte = memory.fetch(addr)
+  override def write(value: Byte): Unit = memory.write(addr,value)
+}
+
+trait Operand16 {
   def name: String
   def get: Short
   def write(value: Short): Unit
+}
+
+trait Register16 extends Operand16 {
   def increment(value: Int): Unit = {
     write((get + value).toShort)
   }
+}
+
+case class Memory16(addrSource: Register16, memory: MemoryController, offset: Int = 0) extends Operand16 {
+  private def addr = (addrSource.get + offset).toShort
+  override def name: String = s"(${addrSource.name})"
+  override def get: Short = memory.fetchShort(addr)
+  override def write(value: Short): Unit = memory.writeShort(addr,value)
 }
 
 trait Flag {
@@ -30,7 +51,7 @@ class Registers {
   // AF, BC, DE, HL all fit into a single 64-bit long
   private var registers : Long = 0
 
-  private case class Register8Impl(name: String, offset: Byte) extends Register8 {
+  case class Register8Impl(name: String, offset: Byte) extends Register8 {
     def get: Byte = (registers >>> offset).toByte
     def write(value: Byte): Unit = {
       val mask: Long = ~(0xFFl << offset)
@@ -38,7 +59,7 @@ class Registers {
     }
   }
 
-  private case class Register16Impl(name: String, offset: Byte) extends Register16 {
+  case class Register16Impl(name: String, offset: Byte) extends Register16 {
     def get: Short = (registers >>> offset).toShort
     def write(value: Short): Unit = {
       val mask: Long = ~(0xFFFFl << offset)
@@ -46,7 +67,7 @@ class Registers {
     }
   }
 
-  private case class FlagImpl(name: String, offset: Byte) extends Flag {
+  case class FlagImpl(name: String, offset: Byte) extends Flag {
     override def set(value: Boolean): Unit =
       if(value) {
         val mask: Long = 1l << offset
