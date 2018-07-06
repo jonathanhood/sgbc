@@ -68,21 +68,28 @@ case class CopyRegister(source: Register8, target: Register8) extends Instructio
 
 case class AddRegisters8(left: Register8, right: Register8) extends Instruction {
   // left = left + right
-
   override def name: String = s"ADD ${left.name},${right.name}"
   override def cycles: Int = 4
   override def width: Int = 1
   override def execute(registers: Registers, memory: MemoryController): Unit = {
-    val result = left.get + right.get
-    registers.Flags.set(result == 0, false, halfCarry, carry(result))
-    left.write(result.toByte)
+    val result = registers.ALU.Oper8(left.get,right.get, _ + _)
+    registers.Flags.N.set(false)
+    left.write(result)
   }
+}
 
-  private def halfCarry: Boolean =
-    (((left.get & 0x0F) + (right.get & 0x0F)) & 0x10) == 0x10
+case class SubstractRegisters8(left: Register8, right: Register8) extends Instruction {
+  // left = left - right
+  override def name: String = s"SUB ${left.name}, ${right.name}"
+  override def cycles: Int = 3
+  override def width: Int = 1
 
-  private def carry(result: Int): Boolean =
-    (result & 0x100) == 0x100
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    val withCarry = (right.get + registers.Flags.C.get).toByte
+    val result = registers.ALU.Oper8(left.get,withCarry, _ - _)
+    registers.Flags.N.set(true)
+    left.write(result)
+  }
 }
 
 case class AddRegisters8WithCarry(left: Register8, right: Register8) extends Instruction {
@@ -92,9 +99,9 @@ case class AddRegisters8WithCarry(left: Register8, right: Register8) extends Ins
   override def cycles: Int = 4
   override def width: Int = 1
   override def execute(registers: Registers, memory: MemoryController): Unit = {
-    val result = left.get + right.get + registers.Flags.C.get
-    registers.Flags.set(result == 0, false, halfCarry(registers.Flags.C), carry(result))
-    left.write(result.toByte)
+    val result = registers.ALU.Oper8(left.get, right.get, _ + _)
+    registers.Flags.N.set(false)
+    left
   }
 
   private def halfCarry(carry: Flag): Boolean =
@@ -102,6 +109,20 @@ case class AddRegisters8WithCarry(left: Register8, right: Register8) extends Ins
 
   private def carry(result: Int): Boolean =
     (result & 0x100) == 0x100
+}
+
+case class SubstractRegisters8WithCarry(left: Register8, right: Register8) extends Instruction {
+  // left = left - right
+  override def name: String = s"SBC ${left.name}, ${right.name}"
+  override def cycles: Int = 3
+  override def width: Int = 1
+
+  override def execute(registers: Registers, memory: MemoryController): Unit = {
+    val withCarry = (right.get + registers.Flags.C.get).toByte
+    val result = registers.ALU.Oper8(left.get,withCarry, _ - _)
+    registers.Flags.N.set(true)
+    left.write(result)
+  }
 }
 
 object NOP extends Instruction {
@@ -232,6 +253,23 @@ class LR35902(registers: Registers, memory: MemoryController) {
   instructions(0x8D) = AddRegisters8WithCarry(registers.A,registers.L)
   instructions(0x8F) = AddRegisters8WithCarry(registers.A,registers.A)
 
+  // SUB X
+  instructions(0x90) = SubstractRegisters8(registers.A,registers.B)
+  instructions(0x91) = SubstractRegisters8(registers.A,registers.C)
+  instructions(0x92) = SubstractRegisters8(registers.A,registers.D)
+  instructions(0x93) = SubstractRegisters8(registers.A,registers.E)
+  instructions(0x94) = SubstractRegisters8(registers.A,registers.H)
+  instructions(0x95) = SubstractRegisters8(registers.A,registers.L)
+  instructions(0x97) = SubstractRegisters8(registers.A,registers.A)
+
+  // SBC A,X
+  instructions(0x98) = SubstractRegisters8WithCarry(registers.A,registers.B)
+  instructions(0x99) = SubstractRegisters8WithCarry(registers.A,registers.C)
+  instructions(0x9A) = SubstractRegisters8WithCarry(registers.A,registers.D)
+  instructions(0x9B) = SubstractRegisters8WithCarry(registers.A,registers.E)
+  instructions(0x9C) = SubstractRegisters8WithCarry(registers.A,registers.H)
+  instructions(0x9D) = SubstractRegisters8WithCarry(registers.A,registers.L)
+  instructions(0x9F) = SubstractRegisters8WithCarry(registers.A,registers.A)
 
   def tick: Unit = {
     val inst = instructions(memory.fetch(registers.PC.get))

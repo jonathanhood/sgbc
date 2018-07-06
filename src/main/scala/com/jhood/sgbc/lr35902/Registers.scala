@@ -79,12 +79,17 @@ class Registers {
     object N extends FlagImpl("N", 6)
     object H extends FlagImpl("H", 5)
     object C extends FlagImpl("C", 4)
+  }
 
-    def set(zero: Boolean, subtract: Boolean, halfCarry: Boolean, carry: Boolean) = {
-      Z.set(zero)
-      N.set(subtract)
-      H.set(halfCarry)
-      C.set(carry)
+  object ALU {
+    def Oper8(left: Byte, right: Byte, operation: (Byte, Byte) => Int): Byte = {
+      val wideResult = operation(left,right)
+      val result = wideResult.toByte
+      val flags = left ^ right ^ wideResult
+      Flags.Z.set(result == 0)
+      Flags.H.set((flags ^ 0x10) != 0)
+      Flags.C.set((flags ^ 0x100) != 0)
+      result
     }
   }
 
