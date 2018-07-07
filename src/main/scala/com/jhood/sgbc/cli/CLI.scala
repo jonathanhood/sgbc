@@ -1,18 +1,27 @@
 package com.jhood.sgbc.cli
 
-import java.io.{File, PrintWriter}
+import java.io.File
 
-import com.jhood.sgbc.lr35902.instructions.{ImplementedInstruction, InstructionTable}
+import com.jhood.sgbc.lr35902.CPU
+import com.jhood.sgbc.memory.{DumbMemoryBlob, MappedMemoryController}
+import com.jhood.sgbc.rom.FileROM
+import com.jhood.sgbc.serial.ConsoleSerialEmitter
 
 object CLI {
   def main(args: Array[String]): Unit = {
-    val writer = new PrintWriter(new File("instructions.csv"))
-    writer.println("sep=;")
-    writer.println("opcode;instruction;width;cycles")
-    InstructionTable.instructions.zipWithIndex collect {
-      case (inst : ImplementedInstruction, opcode) =>
-        writer.println(s"0x${opcode.toHexString};${inst.name};${inst.width};${inst.cycles}")
+    val memory = new MappedMemoryController(List(
+      new ConsoleSerialEmitter,
+      new DumbMemoryBlob
+    ))
+
+    val rom = new FileROM(new File("cpu_instrs.gb"))
+    rom.load.zipWithIndex.foreach { case (b,addr) =>
+      memory.write(addr.toShort,b)
     }
-    writer.close()
+
+    val cpu = new CPU(memory)
+    while(true) {
+      cpu.tick
+    }
   }
 }

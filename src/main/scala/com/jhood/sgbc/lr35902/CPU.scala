@@ -1,8 +1,10 @@
 package com.jhood.sgbc.lr35902
 
+import com.jhood.sgbc.lr35902.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
 import com.jhood.sgbc.memory.MemoryController
 
 sealed abstract class Operand16 { def name: String }
+object ZeroPage extends Operand16 { def name: String = "a8"}
 object Immediate16 extends Operand16 { def name: String = "d16" }
 sealed case class Register16(name: String, offset: Int) extends Operand16
 object AF extends Register16("AF",0)
@@ -12,10 +14,9 @@ object HL extends Register16("HL",3)
 object SP extends Register16("SP", 4)
 object PC extends Register16("PC", 5)
 
-
 sealed abstract class Operand8 { def name: String }
 object Immediate8 extends Operand8 { def name: String = "d8" }
-case class Memory8(addrSource: Register16) extends Operand8 {
+case class Memory8(addrSource: Operand16) extends Operand8 {
   def name: String = s"(${addrSource.name})"
 }
 sealed case class Register8(name: String, partOf: Register16, offset: Int) extends Operand8
@@ -28,15 +29,30 @@ object D extends Register8("D",DE,8)
 object L extends Register8("L",HL,0)
 object H extends Register8("H",HL,8)
 
-
-
 class CPU(memController: MemoryController) {
-  // AF, BC, DE, HL all fit into a single 64-bit
-
-  // Setting to 0x0100 initially identifies this as an OG Gameboy
-  //    0x1100 would be GBC (which we aren't implementing)
-  //    0xFF00 is SGB (which we also aren't implementing)
   private var registers : Array[Short] = Array.fill(6)(0)
+  Registers.write(A,0x01.toByte)    // Identify ourselves as DMB
+  Registers.write(PC,0x100.toShort) // Set the initial starting instruction
+
+  def tick: Int = {
+    val addr = Registers.read(PC)
+    val opcode = memController.fetch(Registers.read(PC))& 0x0FF
+    try {
+      InstructionTable.instructions(opcode) match {
+        case inst : ImplementedInstruction =>
+          inst.execute(this)
+          inst.cycles
+        case NotImplementedInstruction =>
+          throw new Exception(s"Instruction is not implemented.")
+      }
+    } catch {
+      case ex: Exception =>
+        throw new Exception(s"Error encountered while processing opcode 0x${opcode.toHexString} at address 0x${addr.toHexString}", ex)
+    }
+  }
+
+  def incrementPC(inst: ImplementedInstruction): Unit =
+    Registers.write(PC, (Registers.read(PC) + inst.width).toShort)
 
   def read(idx: Operand8): Byte =
     idx match {
@@ -53,17 +69,28 @@ class CPU(memController: MemoryController) {
 
   def read(idx: Operand16): Short =
     idx match {
-      case Immediate16 => memController.fetchShort((Registers.read(PC) + 1).toShort)
+      case Immediate16 =>
+        val lower = memController.fetch((Registers.read(PC) + 1).toShort)
+        val upper = memController.fetch((Registers.read(PC) + 2).toShort)
+        ((upper << 8) + lower).toShort
+      case ZeroPage =>
+        val lower = memController.fetch((Registers.read(PC) + 1).toShort)
+        (0xFF00 + lower).toShort
       case r: Register16 =>
         Registers.read(r)
     }
 
-  object Memory {
-    def read(idx: Memory8): Byte =
-      memController.fetch(Registers.read(idx.addrSource))
 
-    def write(idx: Memory8, value: Byte): Unit =
-      memController.write(Registers.read(idx.addrSource), value)
+  object Memory {
+    def read(idx: Memory8): Byte = {
+      val addr = CPU.this.read(idx.addrSource)
+      memController.fetch(addr)
+    }
+
+    def write(idx: Memory8, value: Byte): Unit = {
+      val addr = CPU.this.read(idx.addrSource)
+      memController.write(addr, value)
+    }
   }
 
   object Registers {

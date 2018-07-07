@@ -2,10 +2,15 @@ package com.jhood.sgbc.lr35902.instructions
 
 import com.jhood.sgbc.lr35902._
 import com.jhood.sgbc.lr35902.instructions.alu._
+import com.jhood.sgbc.lr35902.instructions.flow.JP
 import com.jhood.sgbc.lr35902.instructions.load.{LD, LD16}
+import com.jhood.sgbc.lr35902.instructions.misc.NOP
 
 object InstructionTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
+
+  // Misc
+  instructions(0x00) = NOP
 
   // LD XX,d16
   instructions(0x01) = LD16(BC,Immediate16)
@@ -105,6 +110,18 @@ object InstructionTable {
   instructions(0x6E) = LD(L, Memory8(HL))
   instructions(0x7E) = LD(A, Memory8(HL))
 
+  // LD (a16),x
+  instructions(0xEA) = LD(Memory8(Immediate16), A)
+
+  // LD x,(a16)
+  instructions(0xFA) = LD(A,Memory8(Immediate16))
+
+  // LDH (a8),A
+  instructions(0xE0) = LD(Memory8(ZeroPage),A)
+
+  // LDH A, (a8
+  instructions(0xF0) = LD(A,Memory8(ZeroPage))
+
   // ADD A,X
   instructions(0x80) = ADD(A,B)
   instructions(0x81) = ADD(A,C)
@@ -184,4 +201,15 @@ object InstructionTable {
   instructions(0xBD) = CP(A,L)
   instructions(0xBE) = CP(A,Memory8(HL))
   instructions(0xBF) = CP(A,A)
+
+  // JP
+  instructions(0xC2) = JP(!_.Flags.Z.isSet)
+  instructions(0xC3) = JP(_ => true)
+  instructions(0xCA) = JP(_.Flags.Z.isSet)
+  instructions(0xD2) = JP(!_.Flags.C.isSet)
+  instructions(0xDA) = JP(_.Flags.C.isSet)
+
+  // Interrupts (Not Implemented)
+  instructions(0xF3) = NOP // DI
+  instructions(0xFB) = NOP // EI
 }

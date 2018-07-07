@@ -11,5 +11,6 @@ case class OR(left: Operand8, right: Operand8) extends ALUInstruction {
     cpu.Flags.H.set(false)
     cpu.Flags.C.set(false)
     cpu.write(left,result)
+    cpu.incrementPC(this)
   }
 }

@@ -10,5 +10,6 @@ case class SBC(left: Operand8, right: Operand8) extends ALUInstruction {
     val result = cpu.ALU.Oper8(cpu.read(left),withCarry, _ - _)
     cpu.Flags.N.set(true)
     cpu.write(left,result)
+    cpu.incrementPC(this)
   }
 }

@@ -10,6 +10,8 @@ case class LD16(target: Register16, source: Operand16) extends ImplementedInstru
     case Immediate16 => 3
     case _ => 1
   }
-  override def execute(cpu: CPU): Unit =
+  override def execute(cpu: CPU): Unit = {
     cpu.Registers.write(target, cpu.read(source))
+    cpu.incrementPC(this)
+  }
 }

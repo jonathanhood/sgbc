@@ -9,5 +9,6 @@ case class CP(left: Operand8, right: Operand8) extends ALUInstruction {
     // set but the result is not retained
     cpu.ALU.Oper8(cpu.read(left),cpu.read(right),_ - _)
     cpu.Flags.N.set(true)
+    cpu.incrementPC(this)
   }
 }

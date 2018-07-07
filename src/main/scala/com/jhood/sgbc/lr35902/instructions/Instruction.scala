@@ -9,5 +9,5 @@ abstract class ImplementedInstruction extends Instruction {
   def name: String
   def cycles: Int
   def width: Int
-  def execute(registers: CPU): Unit
+  def execute(cpu: CPU): Unit
 }

@@ -9,6 +9,7 @@ case class ADD(left: Operand8, right: Operand8) extends ALUInstruction {
     val result = cpu.ALU.Oper8(cpu.read(left),cpu.read(right), _ + _)
     cpu.Flags.N.set(false)
     cpu.write(left, result)
+    cpu.incrementPC(this)
   }
 }
 
