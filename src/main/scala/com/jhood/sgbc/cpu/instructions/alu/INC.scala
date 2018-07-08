@@ -10,6 +10,5 @@ case class INC(operand: Operand8) extends ALUInstruction {
     val result = cpu.ALU.Oper8(cpu.read(operand), 1.toByte, _ + _)
     cpu.Flags.N.set(false)
     cpu.write(operand, result)
-    cpu.incrementPC(this)
   }
 }

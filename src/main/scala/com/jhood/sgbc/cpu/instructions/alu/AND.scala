@@ -11,6 +11,5 @@ case class AND(left: Operand8, right: Operand8) extends ALUInstruction {
     cpu.Flags.H.set(true)
     cpu.Flags.C.set(false)
     cpu.write(left,result)
-    cpu.incrementPC(this)
   }
 }

@@ -15,7 +15,4 @@ abstract class ALUInstruction extends ImplementedInstruction {
     case (_, Immediate8)              => 8
     case (_, _ )                      => 4
   }
-
-  override final val width: Int =
-    if(right == Immediate8) 2 else 1
 }

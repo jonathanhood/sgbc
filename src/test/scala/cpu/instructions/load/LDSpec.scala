@@ -39,11 +39,6 @@ class LDSpec extends WordSpec {
           val inst = LD(left, right)
           assert(inst.cycles == 4)
         }
-
-        "be single wide" in {
-          val inst = LD(left, right)
-          assert(inst.width == 1)
-        }
       }
     }
 
@@ -72,11 +67,6 @@ class LDSpec extends WordSpec {
           val inst = LD(reg, mem)
           assert(inst.cycles == 8)
         }
-
-        "be single wide" in {
-          val inst = LD(reg, mem)
-          assert(inst.width == 1)
-        }
       }
 
       s"loading ${reg.name} into memory ${mem.name}" should {
@@ -99,11 +89,6 @@ class LDSpec extends WordSpec {
           val inst = LD(mem, reg)
           assert(inst.cycles == 8)
         }
-
-        "be single wide" in {
-          val inst = LD(mem, reg)
-          assert(inst.width == 1)
-        }
       }
     }
 
@@ -111,8 +96,8 @@ class LDSpec extends WordSpec {
       s"loading immediate values in ${register.name}" should {
         "load the immediate" in {
           val inst = LD(register, Immediate8)
-          cpu.write(PC,0xC000.toShort)
-          memory.write((0xC000 + 1).toShort, 0xEA.toByte)
+          cpu.writePC(0xC000.toShort)
+          memory.write(0xC000.toShort, 0xEA.toByte)
           cpu.write(register, 0xAE.toByte)
 
           inst.execute(cpu)
@@ -123,11 +108,6 @@ class LDSpec extends WordSpec {
         "have extra cycles for the memory read" in {
           val inst = LD(register, Immediate8)
           assert(inst.cycles == 8)
-        }
-
-        "be double wide" in {
-          val inst = LD(register, Immediate8)
-          assert(inst.width == 2)
         }
       }
     }
@@ -149,11 +129,6 @@ class LDSpec extends WordSpec {
           val inst = LD(reg,Memory8(HLI))
           assert(inst.cycles == 8)
         }
-
-        "have no extra width for the increment" in {
-          val inst = LD(reg,Memory8(HLI))
-          assert(inst.width == 1)
-        }
       }
 
       s"decrementing HL and operating on register ${reg.name}" should {
@@ -171,11 +146,6 @@ class LDSpec extends WordSpec {
         "have no extra cycles for the increment" in {
           val inst = LD(reg,Memory8(HLI))
           assert(inst.cycles == 8)
-        }
-
-        "have no extra width for the increment" in {
-          val inst = LD(reg,Memory8(HLI))
-          assert(inst.width == 1)
         }
       }
     }

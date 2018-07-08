@@ -12,10 +12,8 @@ object BC  extends Register16("BC",1)
 object DE  extends Register16("DE",2)
 object HL  extends Register16("HL",3)
 object SP  extends Register16("SP", 4)
-object PC  extends Register16("PC", 5)
 object HLI extends Register16("HL+", 3)
 object HLD extends Register16("HL-", 3)
-
 
 sealed abstract class Operand8 { def name: String }
 object Immediate8 extends Operand8 { def name: String = "d8" }
@@ -33,6 +31,8 @@ object L extends Register8("L",HL,0)
 object H extends Register8("H",HL,8)
 
 class CPU(memController: MappedMemoryController) {
+  private object PC extends Register16("PC", 5)
+
   private var registers: Array[Short] = Array.empty
   reset
 
@@ -47,13 +47,12 @@ class CPU(memController: MappedMemoryController) {
   }
 
   def tick: Int = {
-    val addr = Registers.read(PC)
-    val opcode = memController.fetch(Registers.read(PC))& 0x0FF
+    val addr = getAndIncrementPC
+    val opcode = memController.fetch(addr) & 0x0FF
     try {
       InstructionTable.instructions(opcode) match {
         case inst : ImplementedInstruction =>
           //println(s"0x${addr.toHexString} ${inst.name}")
-          //(1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
           inst.execute(this)
           //println( "  ---- executed")
           //println(s" after $Flags")
@@ -68,14 +67,23 @@ class CPU(memController: MappedMemoryController) {
     }
   }
 
-  def incrementPC(inst: ImplementedInstruction): Unit =
-    for(_ <- 0 until inst.width) { Registers.increment(PC) }
+  def getAndIncrementPC: Short = {
+    val pc = Registers.read(PC)
+    Registers.increment(PC)
+    pc
+  }
+
+  def writePC(value: Short): Unit =
+    Registers.write(PC, value)
 
   def read(idx: Operand8): Byte =
     idx match {
-      case m : Memory8 => Memory.read(m)
-      case r : Register8 => Registers.read(r)
-      case Immediate8 => memController.fetch((Registers.read(PC) + 1).toShort)
+      case m : Memory8    => Memory.read(m)
+      case r : Register8  => Registers.read(r)
+      case Immediate8     =>
+        val result = memController.fetch(getAndIncrementPC)
+        //println( s" imm 0x${result.toHexString}")
+        result
     }
 
   def write(idx: Operand8, value: Byte): Unit =
@@ -92,11 +100,13 @@ class CPU(memController: MappedMemoryController) {
   def read(idx: Operand16): Short =
     idx match {
       case Immediate16 =>
-        val lower = memController.fetch((Registers.read(PC) + 1).toShort) & 0x0FF
-        val upper = memController.fetch((Registers.read(PC) + 2).toShort) & 0x0FF
+        val lower = memController.fetch(getAndIncrementPC) & 0x0FF
+        //println( s" imm 0x${lower.toHexString}")
+        val upper = memController.fetch(getAndIncrementPC) & 0x0FF
+        //println( s" imm 0x${upper.toHexString}")
         ((upper << 8) + lower).toShort
       case ZeroPage =>
-        val lower = memController.fetch((Registers.read(PC) + 1).toShort) & 0x0FF
+        val lower = memController.fetch(getAndIncrementPC) & 0x0FF
         (0xFF00 + lower).toShort
       case r: Register16 =>
         Registers.read(r)
@@ -138,7 +148,9 @@ class CPU(memController: MappedMemoryController) {
       registers(idx.offset) = (registers(idx.offset) - 1).toShort
 
     override def toString: String =
-      List(A,F,B,C,D,E,H,L).map(reg => s"${reg.name}=${(read(reg) & 0x0FF).toHexString}").reduce(_ + " " + _)
+      List(SP,PC).map(reg => s"${reg.name}=${(read(reg) & 0x0FFFF).toHexString}").reduce(_ + " " + _) +
+        " " +
+        List(A,F,B,C,D,E,H,L).map(reg => s"${reg.name}=${(read(reg) & 0x0FF).toHexString}").reduce(_ + " " + _)
   }
 
   object Flags {

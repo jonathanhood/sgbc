@@ -5,12 +5,6 @@ import com.jhood.sgbc.cpu.instructions.ImplementedInstruction
 
 case class INC16(operand: Register16) extends ImplementedInstruction {
   override def name: String = s"INC ${operand.name}"
-
   override def cycles: Int = 8
-  override def width: Int = 1
-
-  override def execute(cpu: CPU): Unit = {
-    cpu.Registers.increment(operand)
-    cpu.incrementPC(this)
-  }
+  override def execute(cpu: CPU): Unit = cpu.Registers.increment(operand)
 }
