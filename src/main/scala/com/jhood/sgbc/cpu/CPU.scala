@@ -51,12 +51,9 @@ class CPU(memController: MappedMemoryController) {
     val opcode = memController.fetch(addr) & 0x0FF
     try {
       InstructionTable.instructions(opcode) match {
-        case inst : ImplementedInstruction =>
-          //println(s"0x${addr.toHexString} ${inst.name}")
+        case inst: ImplementedInstruction =>
+          //println(s"${addr.toHexString} ${inst.name}")
           inst.execute(this)
-          //println( "  ---- executed")
-          //println(s" after $Flags")
-          //println(s" after $Registers")
           inst.cycles
         case NotImplementedInstruction =>
           throw new Exception(s"Instruction is not implemented.")
@@ -188,6 +185,16 @@ class CPU(memController: MappedMemoryController) {
       Flags.Z.set(result == 0)
       Flags.H.set((flags ^ 0x10) != 0)
       Flags.C.set((flags ^ 0x100) != 0)
+      result
+    }
+
+    def Oper16(left: Short, right: Short, operation: (Short,Short) => Int): Short = {
+      val wideResult = operation(left,right)
+      val result = wideResult.toShort
+      val flags = left ^ right ^ wideResult
+      Flags.Z.set(result == 0)
+      Flags.H.set((flags ^ 0x01000) != 0)
+      Flags.C.set((flags ^ 0x10000) != 0)
       result
     }
   }

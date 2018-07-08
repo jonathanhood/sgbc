@@ -18,8 +18,12 @@ abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
       withDevice(RAM(0xFF40, 0x10))
 
     val cpu = new CPU(memory)
-    while(!cpu.Status.stopped) {
-      cpu.tick
+    try {
+      while (!cpu.Status.stopped) {
+        cpu.tick
+      }
+    } catch {
+      case ex: Exception => throw ex
     }
     assert(!serial.output.contains("Failed"))
   }

@@ -15,8 +15,8 @@ class BufferedSerialEmitter extends MemoryMappedDevice {
   override def write(addr: Short, value: Byte): Unit =
     if(addr == SBAddr) {
       SB = value
-    } else if (value == 0x81) {
-      output += SB
+    } else {
+      output = output + SB.toChar
     }
 
   override def read(addr: Short): Byte =

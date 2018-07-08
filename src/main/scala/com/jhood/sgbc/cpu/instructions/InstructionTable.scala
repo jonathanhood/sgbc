@@ -4,8 +4,8 @@ import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.alu._
 import com.jhood.sgbc.cpu.instructions.flow._
 import com.jhood.sgbc.cpu.instructions.load.{LD, LD16, POP, PUSH}
-import com.jhood.sgbc.cpu.instructions.misc.NOP
-import com.jhood.sgbc.cpu.instructions.prefix.PREFIX
+import com.jhood.sgbc.cpu.instructions.misc.{NOP, SCF}
+import com.jhood.sgbc.cpu.instructions.prefix.{PREFIX, RR, RRC}
 
 object InstructionTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
@@ -14,6 +14,9 @@ object InstructionTable {
   instructions(0x00) = NOP
   instructions(0x10) = STOP
   instructions(0xCB) = PREFIX
+  instructions(0x0F) = RRC(A)
+  instructions(0x1F) = RR(A)
+  instructions(0x36) = SCF
 
   // LD XX,d16
   instructions(0x01) = LD16(BC,Immediate16)
@@ -143,6 +146,10 @@ object InstructionTable {
   instructions(0x86) = ADD(A,Memory8(HL))
   instructions(0x87) = ADD(A,A)
   instructions(0xC6) = ADD(A,Immediate8)
+  instructions(0x09) = ADD16(HL,BC)
+  instructions(0x19) = ADD16(HL,DE)
+  instructions(0x29) = ADD16(HL,HL)
+  instructions(0x39) = ADD16(HL,SP)
 
   // ADC A,X
   instructions(0x88) = ADC(A,B)
@@ -153,6 +160,7 @@ object InstructionTable {
   instructions(0x8D) = ADC(A,L)
   instructions(0x8E) = ADC(A,Memory8(HL))
   instructions(0x8F) = ADC(A,A)
+  instructions(0xCE) = ADC(A,Immediate8)
 
   // SUB X
   instructions(0x90) = SUB(A,B)
@@ -195,6 +203,7 @@ object InstructionTable {
   instructions(0xAD) = XOR(A,L)
   instructions(0xAE) = XOR(A,Memory8(HL))
   instructions(0xAF) = XOR(A,A)
+  instructions(0xEE) = XOR(A,Immediate8)
 
   // OR X
   instructions(0xB0) = OR(A,B)
@@ -242,11 +251,12 @@ object InstructionTable {
   instructions(0x3D) = DEC(A)
 
   // JP
-  instructions(0xC2) = JP("JP NZ,a16",!_.Flags.Z.isSet)
-  instructions(0xC3) = JP("JP a16",_ => true)
-  instructions(0xCA) = JP("JP Z,a16",_.Flags.Z.isSet)
-  instructions(0xD2) = JP("JP C,a16",!_.Flags.C.isSet)
-  instructions(0xDA) = JP("JP NC,a16",_.Flags.C.isSet)
+  instructions(0xC2) = JP(Immediate16, "JP NZ,a16",!_.Flags.Z.isSet)
+  instructions(0xC3) = JP(Immediate16, "JP a16",_ => true)
+  instructions(0xCA) = JP(Immediate16, "JP Z,a16",_.Flags.Z.isSet)
+  instructions(0xD2) = JP(Immediate16, "JP C,a16",!_.Flags.C.isSet)
+  instructions(0xDA) = JP(Immediate16, "JP NC,a16",_.Flags.C.isSet)
+  instructions(0xE9) = JP(HL, "JP (HL)", _ => true)
 
   // JR
   instructions(0x20) = JR("JR NZ,r8", !_.Flags.Z.isSet)
