@@ -52,7 +52,7 @@ class CPU(memController: MappedMemoryController) {
     try {
       InstructionTable.instructions(opcode) match {
         case inst: ImplementedInstruction =>
-          //println(s"${addr.toHexString} ${inst.name}")
+          println(s"${addr.toHexString} ${inst.name}")
           inst.execute(this)
           inst.cycles
         case NotImplementedInstruction =>

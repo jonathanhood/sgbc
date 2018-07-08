@@ -1,7 +1,7 @@
 package com.jhood.sgbc.cpu.instructions
 
 import com.jhood.sgbc.cpu._
-import com.jhood.sgbc.cpu.instructions.prefix.{RR, RRC, SRL, SWAP}
+import com.jhood.sgbc.cpu.instructions.prefix._
 
 object PrefixTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
@@ -36,13 +36,23 @@ object PrefixTable {
   instructions(0x36) = SWAP(Memory8(HL))
   instructions(0x37) = SWAP(A)
 
+  // SRA
+  instructions(0x28) = SRA(B)
+  instructions(0x29) = SRA(C)
+  instructions(0x2A) = SRA(D)
+  instructions(0x2B) = SRA(E)
+  instructions(0x2C) = SRA(H)
+  instructions(0x2D) = SRA(L)
+  instructions(0x2E) = SRA(Memory8(HL))
+  instructions(0x2F) = SRA(A)
+
   // SRL
   instructions(0x38) = SRL(B)
   instructions(0x39) = SRL(C)
-  instructions(0x4A) = SRL(D)
-  instructions(0x4B) = SRL(E)
-  instructions(0x4C) = SRL(H)
-  instructions(0x4D) = SRL(L)
-  instructions(0x4E) = SRL(Memory8(HL))
-  instructions(0x4F) = SRL(A)
+  instructions(0x3A) = SRL(D)
+  instructions(0x3B) = SRL(E)
+  instructions(0x3C) = SRL(H)
+  instructions(0x3D) = SRL(L)
+  instructions(0x3E) = SRL(Memory8(HL))
+  instructions(0x3F) = SRL(A)
 }

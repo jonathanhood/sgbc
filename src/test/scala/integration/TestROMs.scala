@@ -7,7 +7,7 @@ import com.jhood.sgbc.memory.{MappedMemoryController, RAM, ROM}
 import com.jhood.sgbc.serial.BufferedSerialEmitter
 import org.scalatest.FlatSpec
 
-class LDTests extends ROMTestExecutor(new File("./src/test/roms/06-ld r,r.gb"))
+class InstructionTests extends ROMTestExecutor(new File("./src/test/roms/cpu_instrs.gb"))
 
 abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
   "A GameBoy" should s"execute test rom '${romFile.getName}'" in {

@@ -16,6 +16,7 @@ class BufferedSerialEmitter extends MemoryMappedDevice {
     if(addr == SBAddr) {
       SB = value
     } else {
+      print(SB.toChar)
       output = output + SB.toChar
     }
 
