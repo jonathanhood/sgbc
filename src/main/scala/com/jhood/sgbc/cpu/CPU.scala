@@ -52,12 +52,12 @@ class CPU(memController: MappedMemoryController) {
     try {
       InstructionTable.instructions(opcode) match {
         case inst : ImplementedInstruction =>
-          println(s"0x${addr.toHexString} ${inst.name}")
-          (1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
+          //println(s"0x${addr.toHexString} ${inst.name}")
+          //(1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
           inst.execute(this)
-          println( "  ---- executed")
-          println(s" after $Flags")
-          println(s" after $Registers")
+          //println( "  ---- executed")
+          //println(s" after $Flags")
+          //println(s" after $Registers")
           inst.cycles
         case NotImplementedInstruction =>
           throw new Exception(s"Instruction is not implemented.")
@@ -178,5 +178,9 @@ class CPU(memController: MappedMemoryController) {
       Flags.C.set((flags ^ 0x100) != 0)
       result
     }
+  }
+
+  object Status {
+    var stopped: Boolean = false
   }
 }

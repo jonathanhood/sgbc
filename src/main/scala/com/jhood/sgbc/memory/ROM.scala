@@ -10,7 +10,7 @@ object ROM {
 
 case class ROM(data: Array[Byte]) extends MemoryMappedDevice {
   override def providesAddress(addr: Short): Boolean =
-    (addr & 0x0FFFF) < data.length
+    (addr & 0x0FFFF) < 32*1024
 
   override def write(addr: Short, value: Byte): Unit =
     throw new Exception("Cannot write to ROM")

@@ -6,20 +6,19 @@ class BufferedSerialEmitter extends MemoryMappedDevice {
   val SBAddr = 0xFF01.toShort
   val SCAddr = 0xFF02.toShort
 
-  var SB = 0
   var output: String = ""
+  var SB: Byte = 0
 
   override def providesAddress(addr: Short): Boolean =
     addr == SBAddr || addr == SCAddr
 
   override def write(addr: Short, value: Byte): Unit =
-    if(SB == SBAddr) {
+    if(addr == SBAddr) {
       SB = value
-    } else if((value & 0x10) != 0) {
-      print(value.toChar)
-      output += value.toChar
+    } else if (value == 0x81) {
+      output += SB
     }
 
   override def read(addr: Short): Byte =
-    if(addr == SBAddr) SB.toByte else 0
+    if(addr == SBAddr) SB else 0
 }
