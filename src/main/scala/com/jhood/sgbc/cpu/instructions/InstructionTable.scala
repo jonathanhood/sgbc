@@ -2,8 +2,8 @@ package com.jhood.sgbc.cpu.instructions
 
 import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.alu._
-import com.jhood.sgbc.cpu.instructions.flow.{JP, JR}
-import com.jhood.sgbc.cpu.instructions.load.{LD, LD16}
+import com.jhood.sgbc.cpu.instructions.flow._
+import com.jhood.sgbc.cpu.instructions.load.{LD, LD16, POP, PUSH}
 import com.jhood.sgbc.cpu.instructions.misc.NOP
 
 object InstructionTable {
@@ -244,7 +244,33 @@ object InstructionTable {
   instructions(0x28) = JR("JR Z,r8", _.Flags.Z.isSet)
   instructions(0x38) = JR("JR C,r8",_.Flags.C.isSet)
 
+  // CALL
+  instructions(0xC4) = CALL("CALL NZ,a16",!_.Flags.Z.isSet)
+  instructions(0xD4) = CALL("CALL NC,a16",!_.Flags.C.isSet)
+  instructions(0xCC) = CALL("CALL Z,a16",_.Flags.Z.isSet)
+  instructions(0xDC) = CALL("CALL C,a16",_.Flags.C.isSet)
+  instructions(0xCD) = CALL("CALL a16", _ => true)
+
+  // RET
+  instructions(0xC0) = RET("RET NZ", !_.Flags.Z.isSet)
+  instructions(0xD0) = RET("RET NC", !_.Flags.C.isSet)
+  instructions(0xC8) = RET("RET Z", _.Flags.Z.isSet)
+  instructions(0xD8) = RET("RET C", _.Flags.C.isSet)
+  instructions(0xC9) = RET("RET", _ => true)
+
+  // PUSH
+  instructions(0xC5) = PUSH(BC)
+  instructions(0xD5) = PUSH(DE)
+  instructions(0xE5) = PUSH(HL)
+  instructions(0xF5) = PUSH(AF)
+
+  // POP
+  instructions(0xC1) = POP(BC)
+  instructions(0xD1) = POP(DE)
+  instructions(0xE1) = POP(HL)
+  instructions(0xF1) = POP(AF)
+
   // Interrupts (Not Implemented)
-  instructions(0xF3) = NOP // DI
+  instructions(0xF3) = DI
   instructions(0xFB) = NOP // EI
 }

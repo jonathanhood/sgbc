@@ -69,7 +69,7 @@ class CPU(memController: MappedMemoryController) {
   }
 
   def incrementPC(inst: ImplementedInstruction): Unit =
-    Registers.write(PC, ((Registers.read(PC) & 0x0FFFF) + inst.width).toShort)
+    for(_ <- 0 until inst.width) { Registers.increment(PC) }
 
   def read(idx: Operand8): Byte =
     idx match {
@@ -92,11 +92,11 @@ class CPU(memController: MappedMemoryController) {
   def read(idx: Operand16): Short =
     idx match {
       case Immediate16 =>
-        val lower = memController.fetch((Registers.read(PC) + 1).toShort)
-        val upper = memController.fetch((Registers.read(PC) + 2).toShort)
+        val lower = memController.fetch((Registers.read(PC) + 1).toShort) & 0x0FF
+        val upper = memController.fetch((Registers.read(PC) + 2).toShort) & 0x0FF
         ((upper << 8) + lower).toShort
       case ZeroPage =>
-        val lower = memController.fetch((Registers.read(PC) + 1).toShort)
+        val lower = memController.fetch((Registers.read(PC) + 1).toShort) & 0x0FF
         (0xFF00 + lower).toShort
       case r: Register16 =>
         Registers.read(r)

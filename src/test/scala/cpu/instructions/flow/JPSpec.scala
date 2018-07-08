@@ -17,8 +17,7 @@ class JPSpec extends WordSpec {
       memory.write(0xC002.toShort, 0x23)
       inst.execute(cpu)
 
-      // The PC also increments after the jump
-      assert(cpu.read(PC) == 0x2315)
+      assert(cpu.read(PC) == 0x2312)
     }
   }
 }

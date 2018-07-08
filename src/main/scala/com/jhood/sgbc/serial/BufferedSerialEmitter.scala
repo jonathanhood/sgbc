@@ -3,8 +3,8 @@ package com.jhood.sgbc.serial
 import com.jhood.sgbc.memory.MemoryMappedDevice
 
 class BufferedSerialEmitter extends MemoryMappedDevice {
-  val SBAddr = 0xFF01
-  val SCAddr = 0xFF02
+  val SBAddr = 0xFF01.toShort
+  val SCAddr = 0xFF02.toShort
 
   var SB = 0
   var output: String = ""
