@@ -1,6 +1,6 @@
-package com.jhood.sgbc.lr35902.instructions.alu
+package com.jhood.sgbc.cpu.instructions.alu
 
-import com.jhood.sgbc.lr35902.{Operand8, CPU}
+import com.jhood.sgbc.cpu.{Operand8, CPU}
 
 case class OR(left: Operand8, right: Operand8) extends ALUInstruction {
   override def name: String = s"OR ${left.name}, ${right.name}"

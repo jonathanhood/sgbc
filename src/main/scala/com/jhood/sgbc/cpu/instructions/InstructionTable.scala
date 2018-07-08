@@ -1,10 +1,10 @@
-package com.jhood.sgbc.lr35902.instructions
+package com.jhood.sgbc.cpu.instructions
 
-import com.jhood.sgbc.lr35902._
-import com.jhood.sgbc.lr35902.instructions.alu._
-import com.jhood.sgbc.lr35902.instructions.flow.JP
-import com.jhood.sgbc.lr35902.instructions.load.{LD, LD16}
-import com.jhood.sgbc.lr35902.instructions.misc.NOP
+import com.jhood.sgbc.cpu._
+import com.jhood.sgbc.cpu.instructions.alu._
+import com.jhood.sgbc.cpu.instructions.flow.{JP, JR}
+import com.jhood.sgbc.cpu.instructions.load.{LD, LD16}
+import com.jhood.sgbc.cpu.instructions.misc.NOP
 
 object InstructionTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
@@ -102,6 +102,8 @@ object InstructionTable {
   instructions(0x77) = LD(Memory8(HL),A)
 
   // LD X,(YY)
+  instructions(0x0A) = LD(A, Memory8(BC))
+  instructions(0x1A) = LD(A, Memory8(DE))
   instructions(0x46) = LD(B, Memory8(HL))
   instructions(0x56) = LD(D, Memory8(HL))
   instructions(0x66) = LD(H, Memory8(HL))
@@ -121,6 +123,12 @@ object InstructionTable {
 
   // LDH A, (a8
   instructions(0xF0) = LD(A,Memory8(ZeroPage))
+
+  // LD HL w/ Modify
+  instructions(0x22) = LD(Memory8(HLI),A)
+  instructions(0x32) = LD(Memory8(HLD),A)
+  instructions(0x2A) = LD(A,Memory8(HLI))
+  instructions(0x3A) = LD(A,Memory8(HLD))
 
   // ADD A,X
   instructions(0x80) = ADD(A,B)
@@ -202,12 +210,39 @@ object InstructionTable {
   instructions(0xBE) = CP(A,Memory8(HL))
   instructions(0xBF) = CP(A,A)
 
+  // INC X
+  instructions(0x04) = INC(B)
+  instructions(0x14) = INC(D)
+  instructions(0x24) = INC(H)
+  instructions(0x34) = INC(Memory8(HL))
+  instructions(0x0C) = INC(C)
+  instructions(0x1C) = INC(E)
+  instructions(0x2C) = INC(L)
+  instructions(0x3C) = INC(A)
+
+  // DEC X
+  instructions(0x05) = DEC(B)
+  instructions(0x15) = DEC(D)
+  instructions(0x25) = DEC(H)
+  instructions(0x35) = DEC(Memory8(HL))
+  instructions(0x0D) = DEC(C)
+  instructions(0x1D) = DEC(E)
+  instructions(0x2D) = DEC(L)
+  instructions(0x3D) = DEC(A)
+
   // JP
-  instructions(0xC2) = JP(!_.Flags.Z.isSet)
-  instructions(0xC3) = JP(_ => true)
-  instructions(0xCA) = JP(_.Flags.Z.isSet)
-  instructions(0xD2) = JP(!_.Flags.C.isSet)
-  instructions(0xDA) = JP(_.Flags.C.isSet)
+  instructions(0xC2) = JP("JP NZ,a16",!_.Flags.Z.isSet)
+  instructions(0xC3) = JP("JP a16",_ => true)
+  instructions(0xCA) = JP("JP Z,a16",_.Flags.Z.isSet)
+  instructions(0xD2) = JP("JP C,a16",!_.Flags.C.isSet)
+  instructions(0xDA) = JP("JP NC,a16",_.Flags.C.isSet)
+
+  // JR
+  instructions(0x20) = JR("JR NZ,r8", !_.Flags.Z.isSet)
+  instructions(0x30) = JR("JR NC,r8", !_.Flags.C.isSet)
+  instructions(0x18) = JR("JR r8", _ => true)
+  instructions(0x28) = JR("JR Z,r8", _.Flags.Z.isSet)
+  instructions(0x38) = JR("JR C,r8",_.Flags.C.isSet)
 
   // Interrupts (Not Implemented)
   instructions(0xF3) = NOP // DI

@@ -2,11 +2,12 @@ package com.jhood.sgbc.serial
 
 import com.jhood.sgbc.memory.MemoryMappedDevice
 
-class ConsoleSerialEmitter extends MemoryMappedDevice {
+class BufferedSerialEmitter extends MemoryMappedDevice {
   val SBAddr = 0xFF01
   val SCAddr = 0xFF02
 
   var SB = 0
+  var output: String = ""
 
   override def providesAddress(addr: Short): Boolean =
     addr == SBAddr || addr == SCAddr
@@ -16,6 +17,7 @@ class ConsoleSerialEmitter extends MemoryMappedDevice {
       SB = value
     } else if((value & 0x10) != 0) {
       print(value.toChar)
+      output += value.toChar
     }
 
   override def read(addr: Short): Byte =

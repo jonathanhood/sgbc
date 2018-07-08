@@ -1,18 +1,21 @@
-package com.jhood.sgbc.lr35902
+package com.jhood.sgbc.cpu
 
-import com.jhood.sgbc.lr35902.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
+import com.jhood.sgbc.cpu.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
 import com.jhood.sgbc.memory.MemoryController
 
 sealed abstract class Operand16 { def name: String }
 object ZeroPage extends Operand16 { def name: String = "a8"}
 object Immediate16 extends Operand16 { def name: String = "d16" }
 sealed case class Register16(name: String, offset: Int) extends Operand16
-object AF extends Register16("AF",0)
-object BC extends Register16("BC",1)
-object DE extends Register16("DE",2)
-object HL extends Register16("HL",3)
-object SP extends Register16("SP", 4)
-object PC extends Register16("PC", 5)
+object AF  extends Register16("AF",0)
+object BC  extends Register16("BC",1)
+object DE  extends Register16("DE",2)
+object HL  extends Register16("HL",3)
+object SP  extends Register16("SP", 4)
+object PC  extends Register16("PC", 5)
+object HLI extends Register16("HL+", 3)
+object HLD extends Register16("HL-", 3)
+
 
 sealed abstract class Operand8 { def name: String }
 object Immediate8 extends Operand8 { def name: String = "d8" }
@@ -30,9 +33,8 @@ object L extends Register8("L",HL,0)
 object H extends Register8("H",HL,8)
 
 class CPU(memController: MemoryController) {
-  private var registers : Array[Short] = Array.fill(6)(0)
+  private var registers: Array[Short] = Array.fill(6)(0)
   Registers.write(A,0x01.toByte)    // Identify ourselves as DMB
-  Registers.write(PC,0x100.toShort) // Set the initial starting instruction
 
   def tick: Int = {
     val addr = Registers.read(PC)
@@ -40,6 +42,8 @@ class CPU(memController: MemoryController) {
     try {
       InstructionTable.instructions(opcode) match {
         case inst : ImplementedInstruction =>
+          //println(s"0x${addr.toHexString} ${inst.name}")
+          //(1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
           inst.execute(this)
           inst.cycles
         case NotImplementedInstruction =>
@@ -108,10 +112,19 @@ class CPU(memController: MemoryController) {
 
     def write(idx: Register16, value: Short): Unit =
       registers(idx.offset) = value
+
+    def increment(idx: Register16): Unit =
+      registers(idx.offset) = (registers(idx.offset) + 1).toShort
+
+    def decrement(idx: Register16): Unit =
+      registers(idx.offset) = (registers(idx.offset) - 1).toShort
+
+    override def toString: String =
+      List(A,F,B,C,D,E,H,L).map(reg => s"${reg.name}=${(read(reg) & 0x0FF).toHexString}").reduce(_ + " " + _)
   }
 
   object Flags {
-    case class FlagImpl(offset: Byte) {
+    case class FlagImpl(name: String, offset: Byte) {
       def set(value: Boolean): Unit =
         if(value) {
           val mask = 1l << offset
@@ -128,10 +141,13 @@ class CPU(memController: MemoryController) {
         if(isSet) 1 else 0
     }
 
-    object Z extends FlagImpl(7)
-    object N extends FlagImpl(6)
-    object H extends FlagImpl(5)
-    object C extends FlagImpl(4)
+    object Z extends FlagImpl("Z",7)
+    object N extends FlagImpl("N",6)
+    object H extends FlagImpl("H",5)
+    object C extends FlagImpl("C",4)
+
+    override def toString: String =
+      List(Z,N,H,C).map(flag => s"${flag.name}=${flag.get}").reduce(_ + " " + _)
   }
 
   object ALU {

@@ -1,10 +1,10 @@
-package com.jhood.sgbc.lr35902.instructions.alu
+package com.jhood.sgbc.cpu.instructions.alu
 
-import com.jhood.sgbc.lr35902.{Operand8, CPU}
+import com.jhood.sgbc.cpu.{Operand8, CPU}
 
-case class SUB(left: Operand8, right: Operand8) extends ALUInstruction {
+case class SBC(left: Operand8, right: Operand8) extends ALUInstruction {
   // left = left - right
-  override def name: String = s"SUB ${left.name}, ${right.name}"
+  override def name: String = s"SBC ${left.name}, ${right.name}"
   override def execute(cpu: CPU): Unit = {
     val withCarry = (cpu.read(right) + cpu.Flags.C.get).toByte
     val result = cpu.ALU.Oper8(cpu.read(left),withCarry, _ - _)

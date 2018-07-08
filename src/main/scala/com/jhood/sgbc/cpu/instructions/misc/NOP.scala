@@ -1,7 +1,7 @@
-package com.jhood.sgbc.lr35902.instructions.misc
+package com.jhood.sgbc.cpu.instructions.misc
 
-import com.jhood.sgbc.lr35902.CPU
-import com.jhood.sgbc.lr35902.instructions.ImplementedInstruction
+import com.jhood.sgbc.cpu.CPU
+import com.jhood.sgbc.cpu.instructions.ImplementedInstruction
 
 object NOP extends ImplementedInstruction {
   override def name: String = "NOP"

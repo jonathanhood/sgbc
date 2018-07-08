@@ -1,7 +1,7 @@
-package com.jhood.sgbc.lr35902.instructions.load
+package com.jhood.sgbc.cpu.instructions.load
 
-import com.jhood.sgbc.lr35902._
-import com.jhood.sgbc.lr35902.instructions.ImplementedInstruction
+import com.jhood.sgbc.cpu._
+import com.jhood.sgbc.cpu.instructions.ImplementedInstruction
 
 case class LD(target: Operand8, source: Operand8) extends ImplementedInstruction {
   override final val name: String = s"LD ${target.name},${source.name}"
@@ -24,6 +24,14 @@ case class LD(target: Operand8, source: Operand8) extends ImplementedInstruction
   }
   override def execute(cpu: CPU): Unit = {
     cpu.write(target, cpu.read(source))
+    mutateOperand(cpu, target)
+    mutateOperand(cpu, source)
     cpu.incrementPC(this)
+  }
+
+  def mutateOperand(cpu: CPU, target: Operand8): Unit = target match {
+    case Memory8(HLD) => cpu.Registers.decrement(HL)
+    case Memory8(HLI) => cpu.Registers.increment(HL)
+    case _ =>
   }
 }

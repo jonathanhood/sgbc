@@ -1,6 +1,6 @@
-package com.jhood.sgbc.lr35902.instructions
+package com.jhood.sgbc.cpu.instructions
 
-import com.jhood.sgbc.lr35902.CPU
+import com.jhood.sgbc.cpu.CPU
 
 abstract class Instruction
 object NotImplementedInstruction extends Instruction
