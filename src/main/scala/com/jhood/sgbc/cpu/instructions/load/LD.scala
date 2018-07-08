@@ -10,9 +10,10 @@ case class LD(target: Operand8, source: Operand8) extends ImplementedInstruction
     case (Memory8(Immediate16),_) => 16
     case (_,Memory8(ZeroPage))    => 12
     case (Memory8(ZeroPage),_)    => 12
-    case (_ : Register8,_)        => 4
+    case (_,_ : Memory8)          => 8
     case (_ : Memory8,_)          => 8
     case (Immediate8,_)           => 8
+    case (_ : Register8,_)        => 4
   }
   override final val width: Int = (source,target) match {
     case (Immediate8,_)           => 2

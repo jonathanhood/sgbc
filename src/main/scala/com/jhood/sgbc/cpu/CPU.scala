@@ -71,6 +71,11 @@ class CPU(memController: MemoryController) {
       case r : Register8 => Registers.write(r, value)
     }
 
+  def write(idx: Operand16, value: Short): Unit =
+    idx match {
+      case r : Register16 => Registers.write(r, value)
+    }
+
   def read(idx: Operand16): Short =
     idx match {
       case Immediate16 =>
