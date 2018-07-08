@@ -10,8 +10,7 @@ case class JR(name: String, condition: (CPU) => Boolean) extends ImplementedInst
     val addr = cpu.read(PC) + cpu.read(Immediate8)
     if(condition(cpu)) {
       cpu.Registers.write(PC,addr.toShort)
-    } else {
-      cpu.incrementPC(this)
     }
+    cpu.incrementPC(this)
   }
 }

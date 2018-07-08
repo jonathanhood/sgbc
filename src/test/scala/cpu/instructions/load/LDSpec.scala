@@ -2,11 +2,11 @@ package cpu.instructions.load
 
 import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.load.LD
-import com.jhood.sgbc.memory.{DumbMemoryBlob, MappedMemoryController}
+import com.jhood.sgbc.memory.MappedMemoryController
 import org.scalatest.WordSpec
 
 class LDSpec extends WordSpec {
-  val memory = new MappedMemoryController(List(new DumbMemoryBlob))
+  val memory = MappedMemoryController.empty
   val cpu = new CPU(memory)
 
   "A LD instruction" when {
@@ -56,7 +56,7 @@ class LDSpec extends WordSpec {
       s"loading ${reg.name} from memory ${mem.name}" should {
         "read from memory" in {
           val inst = LD(reg, mem)
-          val addr = 0x213.toShort
+          val addr = 0xC000.toShort
 
           cpu.write(mem.addrSource, addr)
           memory.write(addr, 0xAF.toByte)
@@ -82,7 +82,7 @@ class LDSpec extends WordSpec {
       s"loading ${reg.name} into memory ${mem.name}" should {
         "read from memory" in {
           val inst = LD(mem, reg)
-          val addr = 0x213.toShort
+          val addr = 0xC000.toShort
 
           cpu.write(mem.addrSource, addr)
           memory.write(addr, 0xEB.toByte)
@@ -111,9 +111,8 @@ class LDSpec extends WordSpec {
       s"loading immediate values in ${register.name}" should {
         "load the immediate" in {
           val inst = LD(register, Immediate8)
-          val pcAddr = cpu.read(PC)
-
-          memory.write((pcAddr + 1).toShort, 0xEA.toByte)
+          cpu.write(PC,0xC000.toShort)
+          memory.write((0xC000 + 1).toShort, 0xEA.toByte)
           cpu.write(register, 0xAE.toByte)
 
           inst.execute(cpu)
@@ -137,12 +136,12 @@ class LDSpec extends WordSpec {
       s"incrementing HL and operating on register ${reg.name}" should {
         s"load register ${reg.name}" in {
           val inst = LD(reg,Memory8(HLI))
-          cpu.write(HL, 10.toShort)
-          memory.write(10, 5)
+          cpu.write(HL, 0xC000.toShort)
+          memory.write(0xC000.toShort, 5)
 
           inst.execute(cpu)
 
-          assert(cpu.read(HL) == 11)
+          assert(cpu.read(HL) == (0xC000 + 1).toShort)
           assert(cpu.read(reg) == 5)
         }
 
@@ -160,12 +159,12 @@ class LDSpec extends WordSpec {
       s"decrementing HL and operating on register ${reg.name}" should {
         s"load register ${reg.name}" in {
           val inst = LD(reg,Memory8(HLD))
-          cpu.write(HL, 10.toShort)
-          memory.write(10, 5)
+          cpu.write(HL, 0xC000.toShort)
+          memory.write(0xC000.toShort, 5)
 
           inst.execute(cpu)
 
-          assert(cpu.read(HL) == 9)
+          assert(cpu.read(HL) == (0xC000 - 1).toShort)
           assert(cpu.read(reg) == 5)
         }
 

@@ -1,7 +1,7 @@
 package com.jhood.sgbc.cpu
 
 import com.jhood.sgbc.cpu.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
-import com.jhood.sgbc.memory.MemoryController
+import com.jhood.sgbc.memory.MappedMemoryController
 
 sealed abstract class Operand16 { def name: String }
 object ZeroPage extends Operand16 { def name: String = "a8"}
@@ -32,9 +32,19 @@ object D extends Register8("D",DE,8)
 object L extends Register8("L",HL,0)
 object H extends Register8("H",HL,8)
 
-class CPU(memController: MemoryController) {
-  private var registers: Array[Short] = Array.fill(6)(0)
-  Registers.write(A,0x01.toByte)    // Identify ourselves as DMB
+class CPU(memController: MappedMemoryController) {
+  private var registers: Array[Short] = Array.empty
+  reset
+
+  def reset: Unit = {
+    registers = Array.fill(6)(0)
+    Registers.write(AF,0x01B0.toShort) // Identify ourselves as DMG, Set ZHC flags
+    Registers.write(PC,0x0100.toShort) // Skip the "Boot ROM" and jump straight to cart initialization
+    Registers.write(SP,0xFFFE.toShort) // Set the startup stack pointer to end of memory
+    Registers.write(BC,0x0013.toShort) // Set BC as left over by the boot rom
+    Registers.write(DE,0x00D8.toShort) // Set DE as left over by the boot rom
+    Registers.write(HL,0x014D.toShort) // Set HL as left over by the boot rom
+  }
 
   def tick: Int = {
     val addr = Registers.read(PC)
@@ -42,9 +52,12 @@ class CPU(memController: MemoryController) {
     try {
       InstructionTable.instructions(opcode) match {
         case inst : ImplementedInstruction =>
-          //println(s"0x${addr.toHexString} ${inst.name}")
-          //(1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
+          println(s"0x${addr.toHexString} ${inst.name}")
+          (1 until inst.width).foreach {i => println(s" $i - ${(memController.fetch((Registers.read(PC) + i).toShort) & 0x0FF).toHexString}")}
           inst.execute(this)
+          println( "  ---- executed")
+          println(s" after $Flags")
+          println(s" after $Registers")
           inst.cycles
         case NotImplementedInstruction =>
           throw new Exception(s"Instruction is not implemented.")
@@ -56,7 +69,7 @@ class CPU(memController: MemoryController) {
   }
 
   def incrementPC(inst: ImplementedInstruction): Unit =
-    Registers.write(PC, (Registers.read(PC) + inst.width).toShort)
+    Registers.write(PC, ((Registers.read(PC) & 0x0FFFF) + inst.width).toShort)
 
   def read(idx: Operand8): Byte =
     idx match {
@@ -107,9 +120,9 @@ class CPU(memController: MemoryController) {
       (registers(idx.partOf.offset) >>> idx.offset).toByte
 
     def write(idx: Register8, value: Byte): Unit = {
-      val mask = ~(0xFFl << idx.offset)
-      val updated = (registers(idx.partOf.offset) & mask) | (value.toShort << idx.offset)
-      registers(idx.partOf.offset) = updated.toShort
+      val lower = if(idx.offset == 0) value else registers(idx.partOf.offset) & 0x0FF
+      val upper = if(idx.offset == 8) value << 8 else registers(idx.partOf.offset) & 0x0FF00
+      registers(idx.partOf.offset) = ((upper & 0x0FF00) | (lower & 0x0FF)).toShort
     }
 
     def read(idx: Register16): Short =
