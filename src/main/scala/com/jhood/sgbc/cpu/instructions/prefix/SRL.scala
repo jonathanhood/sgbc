@@ -10,7 +10,7 @@ case class SRL(operand: Operand8) extends ImplementedInstruction {
   override def execute(cpu: CPU): Unit = {
     val value = cpu.read(operand)
     val shifted = (value & 0x0FF) >> 1
-    cpu.Flags.Z.set(value == 0)
+    cpu.Flags.Z.set(shifted == 0)
     cpu.Flags.N.set(false)
     cpu.Flags.H.set(false)
     cpu.Flags.C.set((value & 0x01) == 0x01)
