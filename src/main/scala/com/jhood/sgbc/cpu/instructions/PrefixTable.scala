@@ -6,6 +6,16 @@ import com.jhood.sgbc.cpu.instructions.prefix._
 object PrefixTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
 
+  //RLC
+  instructions(0x00) = RLC(B)
+  instructions(0x01) = RLC(C)
+  instructions(0x02) = RLC(D)
+  instructions(0x03) = RLC(E)
+  instructions(0x04) = RLC(H)
+  instructions(0x05) = RLC(L)
+  instructions(0x06) = RLC(Memory8(HL))
+  instructions(0x07) = RLC(A)
+
   // RRC
   instructions(0x08) = RRC(B)
   instructions(0x09) = RRC(C)

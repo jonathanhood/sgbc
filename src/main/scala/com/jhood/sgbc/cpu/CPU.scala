@@ -1,7 +1,8 @@
 package com.jhood.sgbc.cpu
 
 import com.jhood.sgbc.cpu.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
-import com.jhood.sgbc.memory.MappedMemoryController
+import com.jhood.sgbc.interrupts.InterruptController
+import com.jhood.sgbc.memory.{MappedMemoryController, MemoryMappedDevice}
 
 sealed abstract class Operand16 { def name: String }
 object ZeroPage extends Operand16 { def name: String = "a8"}
@@ -30,7 +31,7 @@ object D extends Register8("D",DE,8)
 object L extends Register8("L",HL,0)
 object H extends Register8("H",HL,8)
 
-class CPU(memController: MappedMemoryController) {
+case class CPU(interruptController: InterruptController, memController: MappedMemoryController) {
   private object PC extends Register16("PC", 5)
 
   private var registers: Array[Short] = Array.empty
@@ -52,7 +53,7 @@ class CPU(memController: MappedMemoryController) {
     try {
       InstructionTable.instructions(opcode) match {
         case inst: ImplementedInstruction =>
-          println(s"${addr.toHexString} ${inst.name}")
+          //println(s"${addr.toHexString} ${inst.name}")
           inst.execute(this)
           inst.cycles
         case NotImplementedInstruction =>

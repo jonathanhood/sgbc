@@ -10,7 +10,7 @@ object PREFIX extends ImplementedInstruction {
     val prefixCode = cpu.read(Immediate8)
     PrefixTable.instructions(prefixCode) match {
       case inst: ImplementedInstruction =>
-        println(s"  => ${inst.name}")
+        //println(s"  => ${inst.name}")
         inst.execute(cpu)
       case _ =>
         throw new Exception(s"Prefix instruction not implemented 0x${prefixCode.toHexString}")

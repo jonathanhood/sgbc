@@ -3,9 +3,9 @@ package com.jhood.sgbc.cpu.instructions
 import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.alu._
 import com.jhood.sgbc.cpu.instructions.flow._
-import com.jhood.sgbc.cpu.instructions.load.{LD, LD16, POP, PUSH}
+import com.jhood.sgbc.cpu.instructions.load._
 import com.jhood.sgbc.cpu.instructions.misc.{NOP, SCF}
-import com.jhood.sgbc.cpu.instructions.prefix.{PREFIX, RR, RRC}
+import com.jhood.sgbc.cpu.instructions.prefix.{PREFIX, RLC, RR, RRC}
 
 object InstructionTable {
   val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
@@ -17,6 +17,7 @@ object InstructionTable {
   instructions(0x0F) = RRC(A)
   instructions(0x1F) = RR(A)
   instructions(0x36) = SCF
+  instructions(0x07) = RLC(A)
 
   // LD XX,d16
   instructions(0x01) = LD16(BC,Immediate16)
@@ -127,7 +128,7 @@ object InstructionTable {
   // LDH (a8),A
   instructions(0xE0) = LD(Memory8(ZeroPage),A)
 
-  // LDH A, (a8
+  // LDH A, (a8)
   instructions(0xF0) = LD(A,Memory8(ZeroPage))
 
   // LD HL w/ Modify
@@ -135,6 +136,10 @@ object InstructionTable {
   instructions(0x32) = LD(Memory8(HLD),A)
   instructions(0x2A) = LD(A,Memory8(HLI))
   instructions(0x3A) = LD(A,Memory8(HLD))
+
+  // LD HL
+  instructions(0xF8) = LDAddImmediate(HL,SP)
+  instructions(0xF9) = LD16(SP,HL)
 
   // ADD A,X
   instructions(0x80) = ADD(A,B)
@@ -214,6 +219,7 @@ object InstructionTable {
   instructions(0xB5) = OR(A,L)
   instructions(0xB6) = OR(A,Memory8(HL))
   instructions(0xB7) = OR(A,A)
+  instructions(0xF6) = OR(A,Immediate8)
 
   // CP X
   instructions(0xB8) = CP(A,B)

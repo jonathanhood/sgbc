@@ -17,6 +17,9 @@ object MappedMemoryController {
   def empty: MappedMemoryController = basic(ROM.empty)
 }
 
+case class InvalidReadException(addr: Short) extends Exception(s"Invalid read from address ${addr.toHexString}")
+case class InvalidWriteException(addr: Short, value: Byte) extends Exception(s"Invalid write to address ${addr.toHexString} value ${value.toHexString}")
+
 case class MappedMemoryController(devices: List[MemoryMappedDevice])
 {
   private val flag = 0xA5.toByte
@@ -25,7 +28,7 @@ case class MappedMemoryController(devices: List[MemoryMappedDevice])
     devices
       .find(_.providesAddress(address))
       .map(_.read(address))
-      .getOrElse(throw new Exception(s"Invalid access to address ${address.toHexString}"))
+      .getOrElse(throw InvalidReadException(address))
 
   final def fetchShort(address: Short): Short =
     ((fetch((address + 1).toShort) << 8) + fetch(address)).toShort
@@ -41,7 +44,10 @@ case class MappedMemoryController(devices: List[MemoryMappedDevice])
   }
 
   final def write(address: Short, value: Byte): Unit =
-    devices.find(_.providesAddress(address)).foreach(_.write(address,value))
+    devices
+      .find(_.providesAddress(address))
+      .map(_.write(address,value))
+      .getOrElse(throw InvalidWriteException(address,value))
 
   final def writeShort(address: Short, value: Short): Unit = {
     write((address + 1).toShort, (value >>> 8).toByte)

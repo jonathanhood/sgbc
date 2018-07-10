@@ -2,12 +2,13 @@ package cpu.instructions.load
 
 import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.load.LD
+import com.jhood.sgbc.interrupts.InterruptController
 import com.jhood.sgbc.memory.MappedMemoryController
 import org.scalatest.WordSpec
 
 class LDSpec extends WordSpec {
   val memory = MappedMemoryController.empty
-  val cpu = new CPU(memory)
+  val cpu = new CPU(new InterruptController, memory)
 
   "A LD instruction" when {
     val registers = List(A,F,B,C,D,E,H,L)

@@ -2,12 +2,13 @@ package cpu.instructions.alu
 
 import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.alu.INC
+import com.jhood.sgbc.interrupts.InterruptController
 import com.jhood.sgbc.memory.MappedMemoryController
 import org.scalatest.WordSpec
 
 class INCSpec extends WordSpec {
   val memory = MappedMemoryController.empty
-  val cpu = new CPU(memory)
+  val cpu = new CPU(new InterruptController, memory)
 
   "An INC" should {
     "rollover to zero" in {
