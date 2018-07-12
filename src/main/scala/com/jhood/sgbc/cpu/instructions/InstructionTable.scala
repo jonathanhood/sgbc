@@ -18,6 +18,7 @@ object InstructionTable {
   instructions(0x1F) = RR(A)
   instructions(0x36) = SCF
   instructions(0x07) = RLC(A)
+  instructions(0x2F) = CPL
 
   // LD XX,d16
   instructions(0x01) = LD16(BC,Immediate16)
@@ -126,10 +127,16 @@ object InstructionTable {
   instructions(0xFA) = LD(A,Memory8(Immediate16))
 
   // LDH (a8),A
-  instructions(0xE0) = LD(Memory8(ZeroPage),A)
+  instructions(0xE0) = LD(Memory8(ZeroPage(Immediate8)),A)
 
   // LDH A, (a8)
-  instructions(0xF0) = LD(A,Memory8(ZeroPage))
+  instructions(0xF0) = LD(A,Memory8(ZeroPage(Immediate8)))
+
+  // LD (C), A
+  instructions(0xE2) = LD(Memory8(ZeroPage(C)),A)
+
+  // LC A, (C)
+  instructions(0xF2) = LD(A,Memory8(ZeroPage(C)))
 
   // LD HL w/ Modify
   instructions(0x22) = LD(Memory8(HLI),A)
@@ -255,6 +262,10 @@ object InstructionTable {
   instructions(0x1D) = DEC(E)
   instructions(0x2D) = DEC(L)
   instructions(0x3D) = DEC(A)
+  instructions(0x0B) = DEC16(BC)
+  instructions(0x1B) = DEC16(DE)
+  instructions(0x2B) = DEC16(HL)
+  instructions(0x3B) = DEC16(SP)
 
   // JP
   instructions(0xC2) = JP(Immediate16, "JP NZ,a16",!_.Flags.Z.isSet)

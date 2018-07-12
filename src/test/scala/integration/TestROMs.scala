@@ -12,28 +12,40 @@ import com.jhood.sgbc.timer.Timer
 import com.jhood.sgbc.video.Video
 import org.scalatest.FlatSpec
 
-class InstructionTests extends ROMTestExecutor(new File("./src/test/roms/cpu_instrs.gb"))
+class InstructionTests extends ROMTestExecutor(new File("./src/test/roms/06-ld r,r.gb"))
 
 abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
   "A GameBoy" should s"execute test rom '${romFile.getName}'" in {
     val serial = new BufferedSerialEmitter
     val interrupts = new InterruptController
+    val video = new Video
     val memory = MappedMemoryController.basic(ROM.fromFile(romFile))
       .withDevice(serial)
-      .withDevice(RAM(0xFF40, 0x10))
       .withDevice(interrupts)
       .withDevice(Timer)
       .withDevice(new Sound)
       .withDevice(new Input)
-      .withDevice(new Video)
+      .withDevice(video)
 
     val cpu = new CPU(interrupts,memory)
     try {
-      while (!cpu.Status.stopped) {
+      while (!serial.output.contains("7?")) {
         cpu.tick
       }
     } catch {
       case ex: Exception => throw ex
+    }
+
+    println("")
+    println("-- ASCII LCD Output :) --")
+    video.draw.grouped(256).foreach{ row =>
+      row.foreach { dot =>
+        if(dot == 3)      print("X")
+        else if(dot == 2) print("o")
+        else if(dot == 1) print(".")
+        else if(dot == 0) print(" ")
+      }
+      println("")
     }
     assert(!serial.output.contains("Failed"))
   }

@@ -5,7 +5,7 @@ import com.jhood.sgbc.interrupts.InterruptController
 import com.jhood.sgbc.memory.{MappedMemoryController, MemoryMappedDevice}
 
 sealed abstract class Operand16 { def name: String }
-object ZeroPage extends Operand16 { def name: String = "a8"}
+case class ZeroPage(lower: Operand8) extends Operand16 { def name: String = lower.name}
 object Immediate16 extends Operand16 { def name: String = "d16" }
 sealed case class Register16(name: String, offset: Int) extends Operand16
 object AF  extends Register16("AF",0)
@@ -103,8 +103,8 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
         val upper = memController.fetch(getAndIncrementPC) & 0x0FF
         //println( s" imm 0x${upper.toHexString}")
         ((upper << 8) + lower).toShort
-      case ZeroPage =>
-        val lower = memController.fetch(getAndIncrementPC) & 0x0FF
+      case ZeroPage(operand) =>
+        val lower = read(operand) & 0x0FF
         (0xFF00 + lower).toShort
       case r: Register16 =>
         Registers.read(r)

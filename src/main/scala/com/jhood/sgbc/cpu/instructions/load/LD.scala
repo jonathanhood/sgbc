@@ -8,8 +8,8 @@ case class LD(target: Operand8, source: Operand8) extends ImplementedInstruction
   override final val cycles: Int = (source,target) match {
     case (_,Memory8(Immediate16)) => 16
     case (Memory8(Immediate16),_) => 16
-    case (_,Memory8(ZeroPage))    => 12
-    case (Memory8(ZeroPage),_)    => 12
+    case (_,Memory8(ZeroPage(_)))    => 12
+    case (Memory8(ZeroPage(_)),_)    => 12
     case (_,_ : Memory8)          => 8
     case (_ : Memory8,_)          => 8
     case (Immediate8,_)           => 8
