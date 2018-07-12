@@ -179,23 +179,23 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
   }
 
   object ALU {
-    def Oper8(left: Byte, right: Byte, operation: (Byte, Byte) => Int): Byte = {
-      val wideResult = operation(left,right)
-      val result = wideResult.toByte
-      val flags = left ^ right ^ wideResult
+    def Oper8(left: Byte, right: Byte, operation: (Int, Int) => Int): Byte = {
+      val wideResult = operation(left & 0x0FF,right & 0x0FF)
+      val halfResult = operation(left & 0x0F,right & 0x0F)
+      val result = (wideResult & 0x0FF).toByte
       Flags.Z.set(result == 0)
-      Flags.H.set((flags ^ 0x10) != 0)
-      Flags.C.set((flags ^ 0x100) != 0)
+      Flags.H.set((halfResult & 0x010) == 0x010)
+      Flags.C.set((wideResult & 0x100) == 0x100)
       result
     }
 
-    def Oper16(left: Short, right: Short, operation: (Short,Short) => Int): Short = {
-      val wideResult = operation(left,right)
-      val result = wideResult.toShort
-      val flags = left ^ right ^ wideResult
+    def Oper16(left: Short, right: Short, operation: (Int,Int) => Int): Short = {
+      val wideResult = operation(left & 0x0FFFF,right & 0x0FFFF)
+      val halfResult = operation(left & 0x00FFF,right & 0x00FFF)
+      val result = (wideResult & 0x0FFFF).toShort
       Flags.Z.set(result == 0)
-      Flags.H.set((flags ^ 0x01000) != 0)
-      Flags.C.set((flags ^ 0x10000) != 0)
+      Flags.H.set((halfResult & 0x01000) == 0x01000)
+      Flags.C.set((wideResult & 0x10000) == 0x10000)
       result
     }
   }

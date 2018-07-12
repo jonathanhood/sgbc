@@ -29,24 +29,12 @@ abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
 
     val cpu = new CPU(interrupts,memory)
     try {
-      while (!serial.output.contains("7?")) {
+      while (!serial.output.contains("Passed")) {
         cpu.tick
       }
     } catch {
       case ex: Exception => throw ex
     }
-
-    println("")
-    println("-- ASCII LCD Output :) --")
-    video.draw.grouped(256).foreach{ row =>
-      row.foreach { dot =>
-        if(dot == 3)      print("X")
-        else if(dot == 2) print("o")
-        else if(dot == 1) print(".")
-        else if(dot == 0) print(" ")
-      }
-      println("")
-    }
-    assert(!serial.output.contains("Failed"))
+    assert(serial.output.contains("Passed"))
   }
 }
