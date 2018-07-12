@@ -11,22 +11,30 @@ object PTerminalNegativeEdge  extends InterruptType { val mask: Byte = 0x05; val
 
 class InterruptController extends MemoryMappedDevice {
   def setMasterEnable(enabled: Boolean): Unit =
-    masterInterruptEnable = enabled
+    IME = enabled
 
   def setEnabled(iType: InterruptType, enabled: Boolean): Unit =
-    if(enabled) interruptRegister = interruptRegister | iType.mask
-    else interruptRegister = interruptRegister & ~iType.mask
+    if(enabled) IE = (IE | iType.mask).toByte
+    else IE = (IE & ~iType.mask).toByte
 
   def enabled(iType: InterruptType): Boolean =
-    (interruptRegister & iType.mask) == iType.mask
+    (IE & iType.mask).toByte == iType.mask
 
   def masterEnabled: Boolean =
-    masterInterruptEnable
+    IME
 
-  private var masterInterruptEnable: Boolean = false
-  private var interruptRegister = 0
+  private var IME: Boolean = false
+  private val IEAddr = 0xFFFF.toShort
+  private var IE: Byte = 0
+  private val IFAddr = 0xFF0F.toShort
+  private var IF: Byte = 0
 
-  override def providesAddress(addr: Short): Boolean = addr == 0xFFFF.toShort
-  override def write(addr: Short, value: Byte): Unit = ()
-  override def read(addr: Short): Byte = 0
+  override def providesAddress(addr: Short): Boolean =
+    addr == IEAddr || addr == IFAddr
+
+  override def write(addr: Short, value: Byte): Unit =
+    if(addr == IEAddr) IE = value else IF = value
+
+  override def read(addr: Short): Byte =
+    if(addr == IE) IE else IF
 }
