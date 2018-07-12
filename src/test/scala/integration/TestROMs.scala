@@ -9,6 +9,7 @@ import com.jhood.sgbc.memory.{MappedMemoryController, RAM, ROM}
 import com.jhood.sgbc.serial.BufferedSerialEmitter
 import com.jhood.sgbc.sound.Sound
 import com.jhood.sgbc.timer.Timer
+import com.jhood.sgbc.video.Video
 import org.scalatest.FlatSpec
 
 class InstructionTests extends ROMTestExecutor(new File("./src/test/roms/cpu_instrs.gb"))
@@ -24,6 +25,7 @@ abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
       .withDevice(Timer)
       .withDevice(new Sound)
       .withDevice(new Input)
+      .withDevice(new Video)
 
     val cpu = new CPU(interrupts,memory)
     try {

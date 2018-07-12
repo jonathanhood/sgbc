@@ -3,14 +3,7 @@ package com.jhood.sgbc.memory
 object MappedMemoryController {
   def basic(rom: MemoryMappedDevice): MappedMemoryController = MappedMemoryController(List(
     rom,                  // Only single banked ROMs for now
-    RAM(0x8000,0x1800),   // Character Data
-    RAM(0x9800,0x0400),   // Background 1
-    RAM(0x9C00,0x0400),   // Background 2
-    // Game Pack RAM (0xA000 - 0xBFFF)
     RAM(0xC000,0x2000),   // Game Unit RAM
-    // Echo RAM (0xE000 - 0xFDFF)
-    RAM(0xFE00,0x0100),   // OAM
-    // Registers (0xFF00 - 0xFF7F)
     RAM(0xFF80,0x7E)      // Zero Page
   ))
 
