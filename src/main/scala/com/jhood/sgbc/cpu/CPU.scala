@@ -51,7 +51,7 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
     Registers.write(HL,0x014D.toShort) // Set HL as left over by the boot rom
   }
 
-  def tick: Int = {
+  def tick: ImplementedInstruction = {
     val addr = getAndIncrementPC
     val opcode = memController.fetch(addr) & 0x0FF
     try {
@@ -59,7 +59,7 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
         case inst: ImplementedInstruction =>
           //println(s"${addr.toHexString} ${inst.name}")
           inst.execute(this)
-          inst.cycles
+          inst
         case NotImplementedInstruction =>
           throw new Exception(s"Instruction is not implemented.")
       }
@@ -82,10 +82,7 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
     idx match {
       case m : Memory8    => Memory.read(m)
       case r : Register8  => Registers.read(r)
-      case Immediate8     =>
-        val result = memController.fetch(getAndIncrementPC)
-        //println( s" imm 0x${result.toHexString}")
-        result
+      case Immediate8     => memController.fetch(getAndIncrementPC)
     }
 
   def write(idx: Operand8, value: Byte): Unit =
@@ -132,11 +129,11 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
 
     def write(idx: Memory16, value: Short): Unit = {
       val lowerAddr = CPU.this.read(idx.addrSource)
-      val upperAddr = ((lowerAddr & 0x0FFFF) + 1).toShort
+      val upperAddr = (lowerAddr + 1).toShort
       val lower = (value & 0x0FF).toByte
-      val upper = ((value >>> 8) & 0x0FF).toByte
+      val upper = (value & 0x0FF00) >>> 8
       memController.write(lowerAddr, lower)
-      memController.write(upperAddr, upper)
+      memController.write(upperAddr, upper.toByte)
     }
   }
 
@@ -196,13 +193,13 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
   }
 
   object ALU {
-    def Oper8(left: Byte, right: Byte, operation: (Int, Int) => Int): Byte = {
+    def Oper8(left: Byte, right: Byte, operation: (Int, Int) => Int, setCarry: Boolean): Byte = {
       val wideResult = operation(left & 0x0FF,right & 0x0FF)
       val halfResult = operation(left & 0x0F,right & 0x0F)
       val result = (wideResult & 0x0FF).toByte
       Flags.Z.set(result == 0)
       Flags.H.set((halfResult & 0x010) == 0x010)
-      Flags.C.set((wideResult & 0x100) == 0x100)
+      if(setCarry) Flags.C.set((wideResult & 0x100) == 0x100)
       result
     }
 

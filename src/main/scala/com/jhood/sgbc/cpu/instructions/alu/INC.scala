@@ -7,7 +7,7 @@ case class INC(operand: Operand8) extends ALUInstruction {
   override def right: Operand8 = operand
   override def name: String = s"INC ${operand.name}"
   override def execute(cpu: CPU): Unit = {
-    val result = cpu.ALU.Oper8(cpu.read(operand), 1.toByte, _ + _)
+    val result = cpu.ALU.Oper8(cpu.read(operand), 1.toByte, _ + _, false)
     cpu.Flags.N.set(false)
     cpu.write(operand, result)
   }

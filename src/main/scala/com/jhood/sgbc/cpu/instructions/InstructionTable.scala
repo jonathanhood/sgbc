@@ -16,7 +16,7 @@ object InstructionTable {
   instructions(0xCB) = PREFIX
   instructions(0x0F) = RRC(A)
   instructions(0x1F) = RR(A)
-  instructions(0x36) = SCF
+  instructions(0x37) = SCF
   instructions(0x07) = RLC(A)
   instructions(0x2F) = CPL
 
@@ -108,6 +108,7 @@ object InstructionTable {
   instructions(0x74) = LD(Memory8(HL),H)
   instructions(0x75) = LD(Memory8(HL),L)
   instructions(0x77) = LD(Memory8(HL),A)
+  instructions(0x36) = LD(Memory8(HL),Immediate8)
 
   // LD X,(YY)
   instructions(0x0A) = LD(A, Memory8(BC))
@@ -198,6 +199,7 @@ object InstructionTable {
   instructions(0x9D) = SBC(A,L)
   instructions(0x9E) = SBC(A,Memory8(HL))
   instructions(0x9F) = SBC(A,A)
+  instructions(0xDE) = SBC(A,Immediate8)
 
   // AND X
   instructions(0xA0) = AND(A,B)

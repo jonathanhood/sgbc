@@ -10,7 +10,7 @@ class ADDSpec extends WordSpec{
   val memory = MappedMemoryController.empty
   val cpu = new CPU(new InterruptController, memory)
 
-  "An INC" should {
+  "An ADD" should {
     "rollover to zero" in {
       val inst = ADD(A,B)
       cpu.write(A,0xFF.toByte)
