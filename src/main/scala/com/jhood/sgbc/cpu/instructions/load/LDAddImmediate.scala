@@ -8,8 +8,11 @@ case class LDAddImmediate(target: Operand16, source: Operand16) extends Implemen
   override final val cycles: Int = 12
 
   override def execute(cpu: CPU): Unit = {
-    val imm = cpu.read(Immediate8)
-    val result = (cpu.read(source) + imm) & 0x0FFFF
+    val left = cpu.read(source)
+    val right = cpu.read(Immediate8).toShort
+    val result = cpu.ALU.Oper16(left, right, _ + _)
+    cpu.Flags.N.set(false)
+    cpu.Flags.Z.set(false)
     cpu.write(target, result.toShort)
   }
 }

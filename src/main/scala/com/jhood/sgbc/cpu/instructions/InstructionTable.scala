@@ -148,6 +148,9 @@ object InstructionTable {
   instructions(0xF8) = LDAddImmediate(HL,SP)
   instructions(0xF9) = LD16(SP,HL)
 
+  // LD (a16), SP
+  instructions(0x08) = LD16(Memory16(Immediate16), SP)
+
   // ADD A,X
   instructions(0x80) = ADD(A,B)
   instructions(0x81) = ADD(A,C)
@@ -158,10 +161,11 @@ object InstructionTable {
   instructions(0x86) = ADD(A,Memory8(HL))
   instructions(0x87) = ADD(A,A)
   instructions(0xC6) = ADD(A,Immediate8)
-  instructions(0x09) = ADD16(HL,BC)
-  instructions(0x19) = ADD16(HL,DE)
-  instructions(0x29) = ADD16(HL,HL)
-  instructions(0x39) = ADD16(HL,SP)
+  instructions(0x09) = ADD16(HL,BC, false)
+  instructions(0x19) = ADD16(HL,DE, false)
+  instructions(0x29) = ADD16(HL,HL, false)
+  instructions(0x39) = ADD16(HL,SP, false)
+  instructions(0xE8) = ADD16(SP,PaddedImmediate8, true)
 
   // ADC A,X
   instructions(0x88) = ADC(A,B)

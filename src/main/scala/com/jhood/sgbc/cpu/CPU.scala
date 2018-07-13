@@ -2,11 +2,15 @@ package com.jhood.sgbc.cpu
 
 import com.jhood.sgbc.cpu.instructions.{ImplementedInstruction, InstructionTable, NotImplementedInstruction}
 import com.jhood.sgbc.interrupts.InterruptController
-import com.jhood.sgbc.memory.{MappedMemoryController, MemoryMappedDevice}
+import com.jhood.sgbc.memory.{MappedMemoryController}
 
 sealed abstract class Operand16 { def name: String }
 case class ZeroPage(lower: Operand8) extends Operand16 { def name: String = lower.name}
 object Immediate16 extends Operand16 { def name: String = "d16" }
+object PaddedImmediate8 extends Operand16 { def name: String = "d8" }
+case class Memory16(addrSource: Operand16) extends Operand16 {
+  def name: String = s"(${addrSource.name})"
+}
 sealed case class Register16(name: String, offset: Int) extends Operand16
 object AF  extends Register16("AF",0)
 object BC  extends Register16("BC",1)
@@ -93,6 +97,7 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
   def write(idx: Operand16, value: Short): Unit =
     idx match {
       case r : Register16 => Registers.write(r, value)
+      case m : Memory16   => Memory.write(m, value)
     }
 
   def read(idx: Operand16): Short =
@@ -103,6 +108,9 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
         val upper = memController.fetch(getAndIncrementPC) & 0x0FF
         //println( s" imm 0x${upper.toHexString}")
         ((upper << 8) + lower).toShort
+      case PaddedImmediate8 =>
+        val lower = memController.fetch(getAndIncrementPC).toShort
+        lower.toShort
       case ZeroPage(operand) =>
         val lower = read(operand) & 0x0FF
         (0xFF00 + lower).toShort
@@ -120,6 +128,15 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
     def write(idx: Memory8, value: Byte): Unit = {
       val addr = CPU.this.read(idx.addrSource)
       memController.write(addr, value)
+    }
+
+    def write(idx: Memory16, value: Short): Unit = {
+      val lowerAddr = CPU.this.read(idx.addrSource)
+      val upperAddr = ((lowerAddr & 0x0FFFF) + 1).toShort
+      val lower = (value & 0x0FF).toByte
+      val upper = ((value >>> 8) & 0x0FF).toByte
+      memController.write(lowerAddr, lower)
+      memController.write(upperAddr, upper)
     }
   }
 
@@ -193,7 +210,6 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
       val wideResult = operation(left & 0x0FFFF,right & 0x0FFFF)
       val halfResult = operation(left & 0x00FFF,right & 0x00FFF)
       val result = (wideResult & 0x0FFFF).toShort
-      Flags.Z.set(result == 0)
       Flags.H.set((halfResult & 0x01000) == 0x01000)
       Flags.C.set((wideResult & 0x10000) == 0x10000)
       result

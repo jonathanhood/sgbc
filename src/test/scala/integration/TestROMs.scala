@@ -12,7 +12,10 @@ import com.jhood.sgbc.timer.Timer
 import com.jhood.sgbc.video.Video
 import org.scalatest.FlatSpec
 
-class InstructionTests extends ROMTestExecutor(new File("./src/test/roms/06-ld r,r.gb"))
+class InstructionTests3 extends ROMTestExecutor(new File("./src/test/roms/03-op sp,hl.gb"))
+//class InstructionTests4 extends ROMTestExecutor(new File("./src/test/roms/04-op r,imm.gb"))
+//class InstructionTests5 extends ROMTestExecutor(new File("./src/test/roms/05-op rp.gb"))
+class InstructionTests6 extends ROMTestExecutor(new File("./src/test/roms/06-ld r,r.gb"))
 
 abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
   "A GameBoy" should s"execute test rom '${romFile.getName}'" in {
@@ -29,9 +32,13 @@ abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
 
     val cpu = new CPU(interrupts,memory)
     try {
-      while (!serial.output.contains("Passed")) {
+      val before = System.currentTimeMillis()
+      while (!serial.output.contains("Passed") && !serial.output.contains("Failed")) {
         cpu.tick
       }
+      val after = System.currentTimeMillis()
+      println("")
+      println(s"ROM Test Execution too ${after-before}ms")
     } catch {
       case ex: Exception => throw ex
     }
