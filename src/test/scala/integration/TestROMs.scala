@@ -17,6 +17,9 @@ class InstructionTests3 extends ROMTestExecutor(new File("./src/test/roms/03-op 
 class InstructionTests4 extends ROMTestExecutor(new File("./src/test/roms/04-op r,imm.gb"))
 class InstructionTests5 extends ROMTestExecutor(new File("./src/test/roms/05-op rp.gb"))
 class InstructionTests6 extends ROMTestExecutor(new File("./src/test/roms/06-ld r,r.gb"))
+class InstructionTests7 extends ROMTestExecutor(new File("./src/test/roms/07-jr,jp,call,ret,rst.gb"))
+class InstructionTests8 extends ROMTestExecutor(new File("./src/test/roms/08-misc instrs.gb"))
+class InstructionTests9 extends ROMTestExecutor(new File("./src/test/roms/09-op r,r.gb"))
 
 abstract class ROMTestExecutor(romFile: File) extends FlatSpec  {
   "A GameBoy" should s"execute test rom '${romFile.getName}'" in {

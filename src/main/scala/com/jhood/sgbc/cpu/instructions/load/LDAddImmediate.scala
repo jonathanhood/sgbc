@@ -9,7 +9,7 @@ case class LDAddImmediate(target: Operand16, source: Operand16) extends Implemen
 
   override def execute(cpu: CPU): Unit = {
     val left = cpu.read(source)
-    val right = cpu.read(Immediate8).toShort
+    val right = cpu.read(PaddedImmediate8)
     val result = cpu.ALU.Oper16(left, right, _ + _)
     cpu.Flags.N.set(false)
     cpu.Flags.Z.set(false)

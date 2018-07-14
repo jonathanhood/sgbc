@@ -11,7 +11,7 @@ class LDSpec extends WordSpec {
   val cpu = new CPU(new InterruptController, memory)
 
   "A LD instruction" when {
-    val registers = List(A,F,B,C,D,E,H,L)
+    val registers = List(A,B,C,D,E,H,L)
     val registerPairs = registers.flatMap(left => registers.map(right => (left,right)))
     registerPairs.foreach { case (left, right) =>
       s"operating on registers ${left.name}, ${right.name}" should {
@@ -43,7 +43,7 @@ class LDSpec extends WordSpec {
       }
     }
 
-    val wideRegisters = List(AF,BC,DE,HL)
+    val wideRegisters = List(BC,DE,HL)
     val memoryReads = registers
       .flatMap(left => wideRegisters.map(right => (left,Memory8(right))))
       .filterNot(pair => pair._1.partOf == pair._2.addrSource)

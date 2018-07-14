@@ -4,11 +4,11 @@ import com.jhood.sgbc.cpu._
 import com.jhood.sgbc.cpu.instructions.alu._
 import com.jhood.sgbc.cpu.instructions.flow._
 import com.jhood.sgbc.cpu.instructions.load._
-import com.jhood.sgbc.cpu.instructions.misc.{NOP, SCF}
+import com.jhood.sgbc.cpu.instructions.misc.{CCF, NOP, SCF}
 import com.jhood.sgbc.cpu.instructions.prefix.{PREFIX, RLC, RR, RRC}
 
 object InstructionTable {
-  val instructions: Array[Instruction] = Array.fill(0xFF)(NotImplementedInstruction)
+  val instructions: Array[Instruction] = Array.fill(0x1FF)(NotImplementedInstruction)
 
   // Misc
   instructions(0x00) = NOP
@@ -17,6 +17,7 @@ object InstructionTable {
   instructions(0x0F) = RRC(A)
   instructions(0x1F) = RR(A)
   instructions(0x37) = SCF
+  instructions(0x3F) = CCF
   instructions(0x07) = RLC(A)
   instructions(0x2F) = CPL
 
@@ -204,7 +205,7 @@ object InstructionTable {
   // AND X
   instructions(0xA0) = AND(A,B)
   instructions(0xA1) = AND(A,C)
-  instructions(0xA3) = AND(A,D)
+  instructions(0xA2) = AND(A,D)
   instructions(0xA3) = AND(A,E)
   instructions(0xA4) = AND(A,H)
   instructions(0xA5) = AND(A,L)
@@ -226,7 +227,7 @@ object InstructionTable {
   // OR X
   instructions(0xB0) = OR(A,B)
   instructions(0xB1) = OR(A,C)
-  instructions(0xB3) = OR(A,D)
+  instructions(0xB2) = OR(A,D)
   instructions(0xB3) = OR(A,E)
   instructions(0xB4) = OR(A,H)
   instructions(0xB5) = OR(A,L)
@@ -301,6 +302,19 @@ object InstructionTable {
   instructions(0xC8) = RET("RET Z", _.Flags.Z.isSet)
   instructions(0xD8) = RET("RET C", _.Flags.C.isSet)
   instructions(0xC9) = RET("RET", _ => true)
+
+  // RETI (interrupts aren't supported for now)
+  instructions(0xD9) = RET("RETI",_ => true)
+
+  // RST
+  instructions(0xC7) = RST(0x00)
+  instructions(0xD7) = RST(0x10)
+  instructions(0xE7) = RST(0x20)
+  instructions(0xF7) = RST(0x30)
+  instructions(0xCF) = RST(0x08)
+  instructions(0xDF) = RST(0x18)
+  instructions(0xEF) = RST(0x28)
+  instructions(0xFF) = RST(0x38)
 
   // PUSH
   instructions(0xC5) = PUSH(BC)

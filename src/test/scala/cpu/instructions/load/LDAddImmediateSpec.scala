@@ -1,52 +1,17 @@
-package cpu.instructions.alu
+package cpu.instructions.load
 
-import com.jhood.sgbc.cpu._
-import com.jhood.sgbc.cpu.instructions.alu.ADD16
+import com.jhood.sgbc.cpu.{CPU, HL, SP}
+import com.jhood.sgbc.cpu.instructions.load.LDAddImmediate
 import com.jhood.sgbc.interrupts.InterruptController
 import com.jhood.sgbc.memory.MappedMemoryController
 import org.scalatest.WordSpec
 
-class ADD16Spec extends WordSpec{
+class LDAddImmediateSpec extends WordSpec {
   val memory = MappedMemoryController.empty
   val cpu = new CPU(new InterruptController, memory)
 
-  "An ADD16" should {
-    "rollover to zero" in {
-      val inst = ADD16(BC,DE,false)
-      cpu.write(BC,0xFFFF.toShort)
-      cpu.write(DE,0x01.toShort)
 
-      inst.execute(cpu)
-      assert( cpu.read(BC) == 0)
-      assert( cpu.Flags.C.isSet)
-      assert( cpu.Flags.H.isSet)
-      assert(!cpu.Flags.N.isSet)
-    }
-
-    "do a simple add without carry" in {
-      val inst = ADD16(BC,DE,false)
-      cpu.write(BC,1.toShort)
-      cpu.write(DE,1.toShort)
-
-      inst.execute(cpu)
-      assert( cpu.read(BC) == 2)
-      assert(!cpu.Flags.C.isSet)
-      assert(!cpu.Flags.H.isSet)
-      assert(!cpu.Flags.N.isSet)
-    }
-
-    "not sign extend" in {
-      val inst = ADD16(BC,DE,false)
-      cpu.write(BC,0x7FFF.toShort)
-      cpu.write(DE,0x01.toShort)
-
-      inst.execute(cpu)
-      assert( cpu.read(BC) == 0x8000.toShort)
-      assert(!cpu.Flags.C.isSet)
-      assert( cpu.Flags.H.isSet)
-      assert(!cpu.Flags.N.isSet)
-    }
-
+  "A LDAddImmediate" should {
     val plusTests = List(
       // (operand, result, half-carry, carry)
       (0x0000,0x0001,false,false),
@@ -68,15 +33,16 @@ class ADD16Spec extends WordSpec{
     for(test <- plusTests) {
       val (value,expected,halfCarry,carry) = test
 
-      s"execute add an immediate 1 to ${value}" in {
-        val inst = ADD16(BC,PaddedImmediate8,true)
+      s"execute add an immediate 1 to 0x${value.toHexString} and load into the target register" in {
+        val inst = LDAddImmediate(HL,SP)
         cpu.writePC(0xC200.toShort)
         cpu.memController.write(0xC200.toShort, 1.toByte)
-        cpu.write(BC,value.toShort)
+        cpu.write(HL, 0.toShort)
+        cpu.write(SP, value.toShort)
 
         inst.execute(cpu)
 
-        assertResult(expected.toShort)(cpu.read(BC))
+        assertResult(expected.toShort)(cpu.read(HL))
         assertResult(carry)(cpu.Flags.C.isSet)
         assertResult(halfCarry)(cpu.Flags.H.isSet)
         assertResult(false)(cpu.Flags.N.isSet)
@@ -106,15 +72,16 @@ class ADD16Spec extends WordSpec{
     for(test <- minusTests) {
       val (value,expected,halfCarry,carry) = test
 
-      s"execute add an immediate -1 to 0x${value.toHexString}" in {
-        val inst = ADD16(BC,PaddedImmediate8,true)
+      s"execute add an immediate -1 to 0x${value.toHexString} and load into the target register" in {
+        val inst = LDAddImmediate(HL,SP)
         cpu.writePC(0xC200.toShort)
         cpu.memController.write(0xC200.toShort, (-1).toByte)
-        cpu.write(BC,value.toShort)
+        cpu.write(HL, 0.toShort)
+        cpu.write(SP, value.toShort)
 
         inst.execute(cpu)
 
-        assertResult(expected.toShort)(cpu.read(BC))
+        assertResult(expected.toShort)(cpu.read(HL))
         assertResult(carry)(cpu.Flags.C.isSet)
         assertResult(halfCarry)(cpu.Flags.H.isSet)
         assertResult(false)(cpu.Flags.N.isSet)

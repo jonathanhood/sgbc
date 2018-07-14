@@ -142,8 +142,9 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
       (registers(idx.partOf.offset) >>> idx.offset).toByte
 
     def write(idx: Register8, value: Byte): Unit = {
-      val lower = if(idx.offset == 0) value else registers(idx.partOf.offset) & 0x0FF
-      val upper = if(idx.offset == 8) value << 8 else registers(idx.partOf.offset) & 0x0FF00
+      val realValue = if(idx == F) (value & 0xF0).toByte else value
+      val lower = if(idx.offset == 0) realValue else registers(idx.partOf.offset) & 0x0FF
+      val upper = if(idx.offset == 8) realValue << 8 else registers(idx.partOf.offset) & 0x0FF00
       registers(idx.partOf.offset) = ((upper & 0x0FF00) | (lower & 0x0FF)).toShort
     }
 
@@ -151,7 +152,7 @@ case class CPU(interruptController: InterruptController, memController: MappedMe
       registers(idx.offset)
 
     def write(idx: Register16, value: Short): Unit =
-      registers(idx.offset) = value
+      registers(idx.offset) = if(idx == AF) (value & 0xFFF0).toShort else value
 
     def increment(idx: Register16): Unit =
       registers(idx.offset) = (registers(idx.offset) + 1).toShort
